@@ -4,6 +4,7 @@
 
 import cv2
 import time
+import os
 from face_recognition.api import face_distance
 import numpy as np
 import argparse
@@ -25,7 +26,7 @@ RED = (0,0,255)
 #time.sleep(1.0)
 resize_and_bw_frames = True
 do_deepface = False
-do_fer = True
+do_fer = False
 do_mtcnn = False
 do_face_detection = True
 do_face_recognition = True
@@ -33,17 +34,29 @@ do_face_identification = True
 
 emotion_detector = FER(mtcnn=do_mtcnn, compile=True)
 
-#from cv2 import cv2
-me_image = face_recognition.load_image_file("C:\\Users\\rriddel\\Desktop\\img\\ryan.jpg")
-me_face_encoding = face_recognition.face_encodings(me_image)[0]
-me_hand_image = face_recognition.load_image_file("C:\\Users\\rriddel\\Desktop\\img\\ryan_handface.jpg")
-me_handface_encoding = face_recognition.face_encodings(me_hand_image)[0]
-jennifer_image = face_recognition.load_image_file("C:\\Users\\rriddel\\Desktop\\img\\jennifer.jpg")
-jennifer_encoding = face_recognition.face_encodings(jennifer_image)[0]
-known_face_encodings = [me_face_encoding, me_handface_encoding,jennifer_encoding]
-known_face_names = ["Ryan", "Ryan Handface", "Jennifer"]
-#DeepFace.stream(db_path="C:\\User\\rriddel\\Desktop\\database", time_threshold=1, frame_threshold=10)
-vidcap = cv2.VideoCapture(0)
+#load previous face encodingz
+known_face_encodings = []
+known_face_names = []
+
+people_db_size = 0
+img_dir = "C:\\Users\\rriddel\\Desktop\\img\\people"
+directory = os.fsencode(img_dir)
+for file in os.listdir(directory):
+    filename = os.fsdecode(file)
+    pathname = img_dir + "\\" + filename
+    person_name = filename.rsplit('.',1)[0]
+
+    image_file = face_recognition.load_image_file(pathname)
+    new_face_encoding = face_recognition.face_encodings(image_file)
+    people_db_size = people_db_size + 1
+    
+    if len(new_face_encoding) > 0:
+        known_face_encodings.append(new_face_encoding[0])
+        known_face_names.append(person_name)
+
+
+
+vidcap = cv2.VideoCapture(1)
 
 prev_frame_time = 0
 current_frame_time = 0
@@ -53,7 +66,7 @@ bounding_box = []
 fps = FPS().start()
 
 counter = 0
-
+unknown_count=0
 
 while True:
 
@@ -79,21 +92,30 @@ while True:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame = np.dstack([frame, frame, frame])
     
-    cv2.imwrite("C:\\Users\\rriddel\\Desktop\\img\\img.jpg", frame)
+    #cv2.imwrite("C:\\Users\\rriddel\\Desktop\\img\\img.jpg", frame)
 
     if do_face_detection:
-        img = face_recognition.load_image_file("C:\\Users\\rriddel\\Desktop\\img\\img.jpg")
+        #img = face_recognition.load_image_file("C:\\Users\\rriddel\\Desktop\\img\\img.jpg")
+        img=frame
         face_locations = face_recognition.face_locations(img)
         face_landmarks = face_recognition.face_landmarks(img)
         if len(face_landmarks) != 0:
-            cv2.rectangle(frame,(face_locations[0][3], face_locations[0][0]),(face_locations[0][1], face_locations[0][2]),(155, 155, 255), 2,)
+            
             face_detected=True
 
             if do_face_identification:
-                cropped_image = img[face_locations[0][0]-10:face_locations[0][2], face_locations[0][3]:face_locations[0][1]]
+                xLoc = face_locations[0][0]
+                if face_locations[0][0] < 10:
+                    xLoc = 0
+                else:
+                    xLoc = face_locations[0][0]-10
+
+                cropped_image = img[xLoc:face_locations[0][2], face_locations[0][3]:face_locations[0][1]]
                 #cv2.imshow('frame', cropped_image)
-                cv2.imwrite("C:\\Users\\rriddel\\Desktop\\img\\unidentified.jpg", cropped_image)
+                #cv2.imwrite("C:\\Users\\rriddel\\Desktop\\img\\unidentified.jpg", cropped_image)
                 rgb_small_frame=img[:,:,::-1]
+
+                
 
                 face_encodings=face_recognition.face_encodings(rgb_small_frame, face_locations)
                 matches = face_recognition.compare_faces(known_face_encodings, face_encodings[0])
@@ -105,11 +127,21 @@ while True:
                     if matches[best_match_index]:
                         name = known_face_names[best_match_index]
                     print(name)
-
+                    cv2.putText(frame, "ID " + name, (5,50), cv2.FONT_HERSHEY_SIMPLEX,0.5,RED,1,cv2.LINE_AA, )
                     if name == "unknown":
-                        print("Hi")
-                    
-                    
+                        unknown_count = unknown_count + 1
+
+                        if unknown_count > 2:
+                            new_person_name = "person" + str(people_db_size) 
+                            people_db_size = people_db_size + 1
+                            cv2.imwrite("C:\\Users\\rriddel\\Desktop\\img\\people\\" + new_person_name + ".jpg", cropped_image)
+                            known_face_encodings.append(face_encodings[0])
+                            known_face_names.append(new_person_name)
+                            unknown_count = 0
+                    else:
+                        unknown_count = 0
+
+                cv2.rectangle(frame,(face_locations[0][3], face_locations[0][0]),(face_locations[0][1], face_locations[0][2]),(155, 155, 255), 2,)
                     
 
 
