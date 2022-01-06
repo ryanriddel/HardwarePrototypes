@@ -483,10 +483,11 @@ namespace lightstudio
         private void WriteFramesToFile(string filePath)
         {
             StreamWriter file = File.AppendText(filePath);
-            foreach(ListViewItem item in listView1.Items)
+            int frameCounter = 0;
+            foreach (ListViewItem item in listView1.Items)
             {
                 Frame frame = (Frame)item.Tag;
-                int frameCounter = 0;
+                
 
                 file.WriteLine("Frame#" + frameCounter + " " + frame.durationMilliseconds + " " + frame.Subframes.Count);
 
