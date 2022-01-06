@@ -125,7 +125,10 @@ namespace lightstudio
             this.Controls.Add(this.connectionStatusLabel);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.panel1);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "serialManagerForm";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Serial Connection Manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.serialManagerForm_FormClosing);
             this.panel1.ResumeLayout(false);

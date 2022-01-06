@@ -124,47 +124,7 @@ namespace lightstudio
                 using (var pen = new Pen(highlightColor, highlightThickness))
                     e.Graphics.DrawRectangle(pen, new Rectangle(0, 0, this.Width - highlightThickness, this.Height - highlightThickness));
             }
-            //base.OnPaint(e);
-            /*var rc1 = new Rectangle(this.ClientSize.Width / 4-1, 0, this.ClientSize.Width/2-1, this.ClientSize.Height);
-            var rc2 = new Rectangle(0, 0, this.ClientSize.Width / 3 - 1, this.ClientSize.Height);
-            var rc3 = new Rectangle(3*this.ClientSize.Width / 4-1, 0, this.ClientSize.Width / 4 - 1, this.ClientSize.Height);
-            var rc4 = new Rectangle(this.ClientSize.Width / 2 - 1, 0, 3*this.ClientSize.Width / 4 - 1, this.ClientSize.Height);
-            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
-                rc1,
-                Color.FromArgb(255, boxColor),
-                Color.FromArgb(0, boxColor),
-                0f))
-            {
-                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-                e.Graphics.FillRectangle(brush, rc1);
-            }
-            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
-                rc2,
-                Color.FromArgb(0, boxColor),
-                Color.FromArgb(255, boxColor),
-                0f))
-            {
-                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-                e.Graphics.FillRectangle(brush, rc2);
-            }
-            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
-                rc3,
-                Color.FromArgb(0, Color.Blue),
-                Color.FromArgb(255, Color.Blue),
-                0f))
-            {
-                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-                e.Graphics.FillRectangle(brush, rc3);
-            }
-            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(
-                rc4,
-                Color.FromArgb(0, Color.Blue),
-                Color.FromArgb(255, Color.Blue),
-                0f))
-            {
-                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-                e.Graphics.FillRectangle(brush, rc4);
-            }*/
+            
         }
 
         private void ledbox_Click(object sender, EventArgs e)

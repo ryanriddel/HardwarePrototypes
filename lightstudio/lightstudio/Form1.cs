@@ -84,8 +84,6 @@ namespace lightstudio
             blueTextBox.Text = newColor.B.ToString();
 
             updateColorPickerBox();
-
-            
         }
 
         private void redTextBox_TextChanged(object sender, EventArgs e)
@@ -127,8 +125,11 @@ namespace lightstudio
             {
                 Color thisColor = box.BackColor;
 
-                if(thisColor != Color.Transparent)
+                if(true)
                 {
+                    if (thisColor == Color.Transparent)
+                        thisColor = Color.Black;
+
                     if(colorHashmap.ContainsKey(thisColor) == false)
                     {
                         colorHashmap[thisColor] = new List<ledbox>();
@@ -197,8 +198,11 @@ namespace lightstudio
             {
                 Color thisColor = box.BackColor;
 
-                if (thisColor != Color.Transparent)
+                if (true)
                 {
+                    if (thisColor == Color.Transparent)
+                        thisColor = Color.Black;
+
                     if (colorHashmap.ContainsKey(thisColor) == false)
                     {
                         colorHashmap[thisColor] = new List<ledbox>();
@@ -405,7 +409,7 @@ namespace lightstudio
             currentSelectedIndex = 0;
             watch.Start();
             timer1.Interval = 5;
-            timer1.Enabled = true;
+            //timer1.Enabled = true;
             timer1.Start();
         }
 
