@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 
+
 namespace lightstudio
 {
     public class pixelBitmap
@@ -26,9 +27,14 @@ namespace lightstudio
 
     class SubFrame
     {
-        Color color;
-        UInt32 colorBits;
-        byte pixelBitmap = 0;
+        public Color color;
+        public pixelBitmap subframeBitmap;
+
+        public SubFrame(Color subframeColor, pixelBitmap subframePixelBitmap)
+        {
+            color = subframeColor;
+            subframeBitmap = subframePixelBitmap;
+        }
 
     }
 
@@ -38,16 +44,25 @@ namespace lightstudio
     {
         public List<SubFrame> Subframes;
         public int durationMilliseconds = 0;
+        public Bitmap frameImage;
+        public Guid FrameID;
 
-        Frame()
+        public Frame()
         {
             Subframes = new List<SubFrame>();
+            FrameID = Guid.NewGuid();
         }
 
-        Frame(int duration)
+        public Frame(int duration)
         {
             durationMilliseconds = duration;
             Subframes = new List<SubFrame>();
+            FrameID = Guid.NewGuid();
         }
+    }
+
+    class FrameListViewItem : System.Windows.Forms.ListViewItem
+    {
+        public Frame frame;
     }
 }

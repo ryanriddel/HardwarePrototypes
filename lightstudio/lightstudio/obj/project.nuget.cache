@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Mh8l2hPCcRwUQT3978gD0cLbqUk/Bawhec8DRXIFEcv1Sbm6mPjW+Kq83e8zOByU0tXVqarvMxbQJcSVEX+ZEA==",
+  "dgSpecHash": "MF0cDjsj8YmPnYc9VMgteW6QdkWPG+1TCjrmydSvTiTdy45XzIs6Y6xyiy0ET9lFjIR5zVTytVarzlB2UN4OKw==",
   "success": true,
-  "projectFilePath": "\\\\ATMSSV-FILE01\\RRiddel\\lightstudio\\lightstudio\\lightstudio.csproj",
+  "projectFilePath": "C:\\Users\\rriddel\\Desktop\\HardwarePrototypes\\lightstudio\\lightstudio\\lightstudio.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rriddel\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\rriddel\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",

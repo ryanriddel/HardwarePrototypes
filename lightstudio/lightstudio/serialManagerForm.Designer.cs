@@ -67,7 +67,7 @@ namespace lightstudio
             this.baudTextBox.Name = "baudTextBox";
             this.baudTextBox.Size = new System.Drawing.Size(90, 27);
             this.baudTextBox.TabIndex = 3;
-            this.baudTextBox.Text = "115200";
+            this.baudTextBox.Text = "38400";
             // 
             // label2
             // 
@@ -127,6 +127,7 @@ namespace lightstudio
             this.Controls.Add(this.panel1);
             this.Name = "serialManagerForm";
             this.Text = "Serial Connection Manager";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.serialManagerForm_FormClosing);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);

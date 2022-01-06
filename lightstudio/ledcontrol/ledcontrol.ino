@@ -1,36 +1,10 @@
 #include <Adafruit_NeoPixel.h>
-#ifdef __AVR__
-  #include <avr/power.h>
-#endif
-
-#ifdef __arm__
-// should use uinstd.h to define sbrk but Due causes a conflict
-extern "C" char* sbrk(int incr);
-#else  // __ARM__
-extern char *__brkval;
-#endif  // __arm__
-
-
-
-#define PIN        6
-#define LEDPIN     13
-#define GREENLED 52
-#define YELLOWLED 50
-#define REDLED 48
-
-#define NUMPIXELS 38
-
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-#define DELAYVAL 50
-
 struct Subframe
 {
-  //unsigned long color; //unsigned long = 4 bytes
-  //unsigned long pixelBitmap[4]; //2^arraysize must be greater than the number of pixels
   byte pixelMap[16] = {0};
-  byte colorRed;
-  byte colorGreen;
-  byte colorBlue;
+  byte colorRed = 0;
+  byte colorGreen = 0;
+  byte colorBlue = 0;
   
   
 };
@@ -43,50 +17,104 @@ struct Frame
   
 };
   
-Frame frames[8];
+Frame frames[256];
+int frameCount = 0;
+
+#define NUMPIXELS 38
+#define PIN        5
+
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
+  Serial.begin(38400);
   pixels.begin();
-
-  pinMode(LEDPIN, OUTPUT);
-  pinMode(GREENLED, OUTPUT);
-  pinMode(REDLED, OUTPUT);
-  pinMode(YELLOWLED, OUTPUT);
-  
-  digitalWrite(LEDPIN, LOW);
-  digitalWrite(REDLED, LOW);
-  
-  delay(5000);
+  clearPixels();
 }
+
+byte inputBuffer[512]={0};
+int inputBufferLength = 0;
+bool isMessageOver = false;
+bool isMessageStarted = false;
+bool isAnimationPending = false;
 
 void loop() {
   // put your main code here, to run repeatedly:
-  //Serial.println(freeMemory());
-  pixels.clear();
-  if(Serial.available()>0)
+  while(Serial.available())
   {
-    getFrameFromSerial(frames[0]);
-    ApplyFrame(frames[0]);
+    char inByte = Serial.read();
+
+    if(inByte == '<'  && !isMessageStarted)
+    {
+      inputBufferLength=0;
+      isMessageStarted = true;
+    }
+    else if(inByte == '>' && isMessageStarted)
+    {
+      isMessageOver = true;
+    }
+    else if(inByte == '$' && Serial.available() == 0)
+    {
+      isAnimationPending = true;
+    }
+    else
+    {
+      inputBuffer[inputBufferLength] = inByte;
+      inputBufferLength++;
+    }
   }
-  
+
+  if(isMessageOver)
+  {
+    isMessageOver = false;
+    isMessageStarted = false;
+    
+    String messageOut = "";
+    messageOut += inputBufferLength;
+    messageOut += ":";
+    for(int i=0; i<inputBufferLength; i++)
+    {
+      messageOut += inputBuffer[i];
+      messageOut += " ";
+    }
+    //Serial.println(messageOut);
+    inputBufferLength = 0;
+    //Serial.flush();
+    getFrameFromBytes(frames[frameCount], inputBuffer);
+    frameCount++;
+
+    
+  }
+
+  if(isAnimationPending )
+  {
+    isAnimationPending = false;
+    for(int i=0; i<frameCount; i++)
+    {
+      ApplyFrame(frames[i]);
+    }
+    frameCount = 0;
+  }
+}
+
+
+
+
+void FlashLEDS()
+{
   for(int i=0; i<NUMPIXELS; i++)
   {
-    clearPixels();
-    //pixels.setPixelColor(i, pixels.Color(255, 255, 255));
+    pixels.setPixelColor(i, pixels.Color(255,255,255));
     pixels.show();
-    Serial.println(i);
-    delay(2000);
   }
-  delay(1000);
-  clearPixels();
-  /*for(int i=0; i<NUMPIXELS; i++)
+  delay(2000);
+  for(int i=0; i<NUMPIXELS; i++)
   {
-    pixels.setPixelColor(i, pixels.Color(0,255,0));
+    pixels.setPixelColor(i, pixels.Color(0,0,0));
     pixels.show();
-    delay(DELAYVAL);
-  }*/
+  }
+  delay(2000);
+ 
 }
 
 void ApplyFrames(Frame frameArray[], int frameCount)
@@ -94,7 +122,7 @@ void ApplyFrames(Frame frameArray[], int frameCount)
   for(int i=0; i<frameCount; i++)
   {
     ApplyFrame(frameArray[i]);
-    delay(frameArray[i].frameDuration);
+    //delay(frameArray[i].frameDuration);
   }
 }
 
@@ -104,7 +132,7 @@ void ApplyFrame(Frame& frame)
     return;
     
   pixels.clear();
-  digitalWrite(REDLED, HIGH);
+  
 
 
   for(int i=0; i<frame.subframeCount; i++)
@@ -128,6 +156,8 @@ void ApplyFrame(Frame& frame)
   }
   
   pixels.show();
+  delay(frame.frameDuration);
+  clearPixels();
 }
 
 void clearPixels()
@@ -139,75 +169,27 @@ void clearPixels()
   pixels.show();
 }
 
-void getFrameFromSerial(Frame& newFrame)
+void getFrameFromBytes(Frame& newFrame, byte byteArray[])
 {
   newFrame.subframeCount = 0;
-  if(Serial.available() > 0)
+  byte numSubframes = byteArray[0];
+
+  
+  newFrame.subframeCount = numSubframes;
+  newFrame.frameDuration = byteArray[1] + (byteArray[2]<<8);
+
+  for(int j=0; j<numSubframes; j++)
   {
-    char incomingByte = Serial.read();
-    byte byteBuffer[32];
-    
-    if(incomingByte == 'C')
+
+    newFrame.subframes[j].colorRed = byteArray[j*19 + 3];
+    newFrame.subframes[j].colorGreen = byteArray[j*19 + 4];
+    newFrame.subframes[j].colorBlue = byteArray[j*19 + 5];
+
+    for(int i=0; i<16; i++)
     {
-      delay(2);
-      digitalWrite(LEDPIN, HIGH);
-
-      byte numSubframes = Serial.read();
-      Serial.println(numSubframes);
-
-      byte durationBytes[2];
-      durationBytes[0]=Serial.read();
-      durationBytes[1]=Serial.read();
-      
-      newFrame.subframeCount = numSubframes;
-      newFrame.frameDuration = 1000;
-
-      for(int j=0; j<numSubframes; j++)
-      {
-
-        Subframe sframe = newFrame.subframes[j];
-        
-        byte colorBytes[3];
-        int numRead = Serial.readBytes(colorBytes, 3);
-        if(numRead != 3)
-        {
-          Serial.println(numRead);
-        }
-        
-  
-        newFrame.subframes[j].colorRed = colorBytes[0];
-        newFrame.subframes[j].colorGreen = colorBytes[1];
-        newFrame.subframes[j].colorBlue = colorBytes[2];
-        byte pixelBitmapBytes[16];
-  
-        numRead = Serial.readBytes(pixelBitmapBytes, 16);
-  
-        if(numRead != 16)
-        {
-          Serial.println("16 bytes not read!");
-          Serial.println(numRead);
-        }
-        
-        
-        for(int i=0; i<16; i++)
-          newFrame.subframes[j].pixelMap[i] = pixelBitmapBytes[i];
-        
-  
-      }
-
+      newFrame.subframes[j].pixelMap[i] = byteArray[j*19 + 6 + i];
     }
-  }
-  return;
-  //return newFrame;
-}
 
-int freeMemory() {
-  char top;
-#ifdef __arm__
-  return &top - reinterpret_cast<char*>(sbrk(0));
-#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-  return &top - __brkval;
-#else  // __arm__
-  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-#endif  // __arm__
+  }
+  
 }

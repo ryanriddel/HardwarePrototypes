@@ -30,8 +30,27 @@ namespace lightstudio
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DeviceDisplay));
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.setSelectedToTransparentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setSelectedToTransparentToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(260, 56);
+            // 
+            // setSelectedToTransparentToolStripMenuItem
+            // 
+            this.setSelectedToTransparentToolStripMenuItem.Name = "setSelectedToTransparentToolStripMenuItem";
+            this.setSelectedToTransparentToolStripMenuItem.Size = new System.Drawing.Size(259, 24);
+            this.setSelectedToTransparentToolStripMenuItem.Text = "Set Selected to Transparent";
+            this.setSelectedToTransparentToolStripMenuItem.Click += new System.EventHandler(this.setSelectedToTransparentToolStripMenuItem_Click);
             // 
             // DeviceDisplay
             // 
@@ -46,10 +65,14 @@ namespace lightstudio
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DeviceDisplay_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DeviceDisplay_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DeviceDisplay_MouseUp);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem setSelectedToTransparentToolStripMenuItem;
     }
 }

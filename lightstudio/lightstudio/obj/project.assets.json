@@ -490,11 +490,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "\\\\ATMSSV-FILE01\\RRiddel\\lightstudio\\lightstudio\\lightstudio.csproj",
+      "projectUniqueName": "C:\\Users\\rriddel\\Desktop\\HardwarePrototypes\\lightstudio\\lightstudio\\lightstudio.csproj",
       "projectName": "lightstudio",
-      "projectPath": "\\\\ATMSSV-FILE01\\RRiddel\\lightstudio\\lightstudio\\lightstudio.csproj",
+      "projectPath": "C:\\Users\\rriddel\\Desktop\\HardwarePrototypes\\lightstudio\\lightstudio\\lightstudio.csproj",
       "packagesPath": "C:\\Users\\rriddel\\.nuget\\packages\\",
-      "outputPath": "\\\\ATMSSV-FILE01\\RRiddel\\lightstudio\\lightstudio\\obj\\",
+      "outputPath": "C:\\Users\\rriddel\\Desktop\\HardwarePrototypes\\lightstudio\\lightstudio\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

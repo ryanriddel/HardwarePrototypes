@@ -33,7 +33,7 @@ namespace lightstudio
         }
 
         int frameOffsetX = 8;
-        int frameOffsetY = 16;
+        int frameOffsetY = 10;
 
         public void ClearLEDBoxes()
         {
@@ -56,6 +56,7 @@ namespace lightstudio
 
         void CreateLEDStripBoxes(int numLEDS)
         {
+            throw new NotImplementedException();
             this.BackgroundImage = null;
             this.BackColor = Color.Black;
             this.Invalidate();
@@ -179,26 +180,32 @@ namespace lightstudio
         private void DeviceDisplay_MouseDown(object sender, MouseEventArgs e)
         {
             RectStartPoint = e.Location;
-            this.Invalidate();
+            //this.Invalidate();
 
-            if(Control.ModifierKeys == Keys.Shift)
+            if (e.Button == MouseButtons.Left)
             {
-
-            }
-            else if(Control.ModifierKeys == Keys.Control)
-            {
-                for(int i= 0; i< ledboxList.Count; i++)
+                if (Control.ModifierKeys == Keys.Shift)
                 {
-                    if(ledboxList[i].rectArea.Contains(e.Location))
+
+                }
+                else if (Control.ModifierKeys == Keys.Control)
+                {
+                    for (int i = 0; i < ledboxList.Count; i++)
                     {
-                        ledboxList[i].HighlightCell(true);
+                        if (ledboxList[i].rectArea.Contains(e.Location))
+                        {
+                            ledboxList[i].HighlightCell(true);
+                        }
                     }
                 }
+                else
+                {
+                    UnHighlightBoxes();
+                }
             }
-            else
+            else if(e.Button == MouseButtons.Right)
             {
-                for (int i = 0; i < ledboxList.Count; i++)
-                    ledboxList[i].HighlightCell(false);
+                contextMenuStrip1.Show(this, new Point(e.X, e.Y));
             }
         }
 
@@ -213,9 +220,17 @@ namespace lightstudio
             }
             else if(e.Button == MouseButtons.Left)
             {
-                HighlightBoxes(GetBoxesInRectangle(Rect));
+                if (GetBoxesInRectangle(Rect).Count > 0)
+                {
+                    HighlightBoxes(GetBoxesInRectangle(Rect));
 
-                Rect.Size = new Size(1,1);
+                    Rect.Size = new Size(1, 1);
+                }
+                else
+                {
+                    UnHighlightBoxes();
+                    Rect.Size = new Size(1,1);
+                }
                 
                 this.Invalidate();
             }
@@ -236,14 +251,24 @@ namespace lightstudio
         {
             for (int i = 0; i < boxesToHighlight.Count; i++)
             {
+                
                 //boxesToHighlight[i].HighlightCell(true);
 
                 
                 for(int j=0; j< ledbox.numToBox[boxesToHighlight[i].pixelNumber].Count; j++)
                 {
                     ledbox.numToBox[boxesToHighlight[i].pixelNumber][j].HighlightCell(true);
+                
                 }
                 //boxesToHighlight[i].Invalidate();
+            }
+        }
+
+        private void UnHighlightBoxes()
+        {
+            foreach(ledbox box in ledboxList)
+            {
+                box.HighlightCell(false);
             }
         }
         
@@ -261,6 +286,14 @@ namespace lightstudio
                 Math.Abs(RectStartPoint.X - tempEndPoint.X),
                 Math.Abs(RectStartPoint.Y - tempEndPoint.Y));
             this.Invalidate();
+        }
+
+        private void setSelectedToTransparentToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < ledbox.highlightedCellList.Count; i++)
+            {
+                ledbox.highlightedCellList[i].BackColor = Color.Transparent;
+            }
         }
     }
 }

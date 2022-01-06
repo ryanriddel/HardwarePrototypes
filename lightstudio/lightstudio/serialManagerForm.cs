@@ -43,6 +43,7 @@ namespace lightstudio
                     int baudrate = Int32.Parse(baudtext);
                     port = new SerialPort(portname, baudrate);
                     port.DataReceived += Port_DataReceived;
+                    port.WriteBufferSize = 16;
                     port.Open();
                 }
                 else if (isConnected && button1.Text == "Disconnect")
@@ -77,6 +78,11 @@ namespace lightstudio
         {
             string readResult = port.ReadExisting();
             System.Diagnostics.Debug.WriteLine("Serial data received: " + readResult);
+        }
+
+        private void serialManagerForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            
         }
     }
 }
