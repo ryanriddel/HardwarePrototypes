@@ -589,6 +589,9 @@ namespace lightstudio
                 string filename = openFileDialog1.FileName;
                 List<Frame> frames = LoadFramesFromFile(filename);
 
+                if (frames.Count > 0)
+                    listView1.Items.Clear();
+
                 for (int i = 0; i < frames.Count; i++)
                 {
                     WriteFrameToDeviceDisplay(frames[i]);
