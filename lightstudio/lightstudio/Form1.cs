@@ -8,9 +8,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using lightstudio.Events;
-using lightstudio.Timing;
-using lightstudio.TestObjects;
 
 
 namespace lightstudio
@@ -19,7 +16,6 @@ namespace lightstudio
 
     public partial class Form1 : Form
     {
-        private TimeBeamClock _clock = new TimeBeamClock();
         serialManagerForm serialManager = new serialManagerForm();
 
         public Form1()
@@ -29,16 +25,6 @@ namespace lightstudio
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //colorDialog1.ShowDialog();
-            /* string[] array = { "A", "B", "C" };
-             var items = listView1.Items;
-             foreach(var value in array)
-             {
-                 items.Add(value);
-             }*/
-            //listView1.Items.Add(new ListViewItem(new[] { "A", "B", "C" }));
-            
-            
             
         }
 
@@ -89,7 +75,6 @@ namespace lightstudio
         private void redTextBox_TextChanged(object sender, EventArgs e)
         {
             updateColorPickerBox();
-
         }
 
         private void greenTextBox_TextChanged(object sender, EventArgs e)
@@ -105,46 +90,37 @@ namespace lightstudio
         private void toolStripLabel1_Click(object sender, EventArgs e)
         {
             serialManager.ShowDialog();
-
-            
         }
 
-        Dictionary<Color, List<ledbox>> colorHashmap;
-        Dictionary<Color, pixelBitmap> colorBitmap;
+
+        private Dictionary<Color, pixelBitmap> GetDisplayPanelColorBitmap()
+        {
+            Dictionary<Color, pixelBitmap> colorBitmap = new Dictionary<Color, pixelBitmap>();
+            foreach (ledbox box in deviceDisplay2.ledboxList)
+            {
+                Color thisColor = box.BackColor;
+
+                
+                if (thisColor == Color.Transparent)
+                    thisColor = Color.Black;
+
+
+                if (colorBitmap.ContainsKey(thisColor) == false)
+                {
+                    colorBitmap[thisColor] = new pixelBitmap();
+                }
+                colorBitmap[thisColor].setPixel(box.pixelNumber);
+
+            }
+            return colorBitmap;
+        }
         private void button2_Click(object sender, EventArgs e)
         {
             if (serialManager.isConnected == false)
                 return;
 
             
-
-            colorHashmap = new Dictionary<Color, List<ledbox>>();
-            colorBitmap = new Dictionary<Color, pixelBitmap>();
-
-            foreach(ledbox box in deviceDisplay2.ledboxList)
-            {
-                Color thisColor = box.BackColor;
-
-                if(true)
-                {
-                    if (thisColor == Color.Transparent)
-                        thisColor = Color.Black;
-
-                    if(colorHashmap.ContainsKey(thisColor) == false)
-                    {
-                        colorHashmap[thisColor] = new List<ledbox>();
-                    }
-
-                    colorHashmap[thisColor].Add(box);
-
-                    if(colorBitmap.ContainsKey(thisColor) == false)
-                    {
-                        colorBitmap[thisColor] = new pixelBitmap();
-                    }
-                    colorBitmap[thisColor].setPixel(box.pixelNumber);
-
-                }
-            }
+            Dictionary<Color, pixelBitmap> colorBitmap=GetDisplayPanelColorBitmap();
 
 
             byte numSubframes = (byte)colorBitmap.Keys.Count;
@@ -191,33 +167,8 @@ namespace lightstudio
 
         private void button1_Click(object sender, EventArgs e)
         {
-            colorHashmap = new Dictionary<Color, List<ledbox>>();
-            colorBitmap = new Dictionary<Color, pixelBitmap>();
+            Dictionary < Color, pixelBitmap > colorBitmap = GetDisplayPanelColorBitmap();
 
-            foreach (ledbox box in deviceDisplay2.ledboxList)
-            {
-                Color thisColor = box.BackColor;
-
-                if (true)
-                {
-                    if (thisColor == Color.Transparent)
-                        thisColor = Color.Black;
-
-                    if (colorHashmap.ContainsKey(thisColor) == false)
-                    {
-                        colorHashmap[thisColor] = new List<ledbox>();
-                    }
-
-                    colorHashmap[thisColor].Add(box);
-
-                    if (colorBitmap.ContainsKey(thisColor) == false)
-                    {
-                        colorBitmap[thisColor] = new pixelBitmap();
-                    }
-                    colorBitmap[thisColor].setPixel(box.pixelNumber);
-
-                }
-            }
 
             Frame newFrame = new Frame();
 
@@ -250,8 +201,6 @@ namespace lightstudio
 
         private void listView1_ItemActivate(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("listview item activate");
-            
         }
 
         private void pictureBox7_Click(object sender, EventArgs e)
@@ -363,11 +312,7 @@ namespace lightstudio
                     if (loopCheckbox.Checked)
                         buttonPlay_Click(null, null);
                 }
-
             }
-                
-            
-            
         }
 
         private void buttonPlay_Click(object sender, EventArgs e)
@@ -488,7 +433,6 @@ namespace lightstudio
             {
                 Frame frame = (Frame)item.Tag;
                 
-
                 file.WriteLine("Frame#" + frameCounter + " " + frame.durationMilliseconds + " " + frame.Subframes.Count);
 
                 for (int i = 0; i < frame.Subframes.Count; i++)
@@ -573,7 +517,6 @@ namespace lightstudio
                             }
                         }
                     }
-
                 }
             }
             deviceDisplay2.Invalidate();

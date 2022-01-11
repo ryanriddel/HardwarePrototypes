@@ -22,7 +22,6 @@ namespace lightstudio
         public static Dictionary<int, List<ledbox>> numToBox = new Dictionary<int, List<ledbox>>();
 
 
-
         ToolTip myTooltip;
 
         public Color boxColor = Color.White;
@@ -70,7 +69,6 @@ namespace lightstudio
                 highlightedCellList.Remove(this);
 
             this.Invalidate();
-            //this.InvokePaint();
 
         }
 
@@ -91,8 +89,6 @@ namespace lightstudio
             myTooltip.ShowAlways = true;
             myTooltip.SetToolTip(this, "#: " + this.pixelNumber.ToString());
             myTooltip.Popup += MyTooltip_Popup;
-
-
 
 
             boxOrientation = orientation;

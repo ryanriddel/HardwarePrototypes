@@ -61,8 +61,4 @@ namespace lightstudio
         }
     }
 
-    class FrameListViewItem : System.Windows.Forms.ListViewItem
-    {
-        public Frame frame;
-    }
 }

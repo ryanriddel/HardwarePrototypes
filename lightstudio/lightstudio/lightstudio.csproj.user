@@ -4,9 +4,6 @@
     <Compile Update="DeviceDisplay.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="DeviceDisplayPanel.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Update="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -15,21 +12,6 @@
     </Compile>
     <Compile Update="serialManagerForm.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="timebar\Scrollbar\AbstractScrollbar.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="timebar\Scrollbar\HorizontalScrollbar.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="timebar\Scrollbar\VerticalScrollbar.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="timebar\Timeline.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="Timeline\Timeline.cs">
-      <SubType>UserControl</SubType>
     </Compile>
   </ItemGroup>
 </Project>

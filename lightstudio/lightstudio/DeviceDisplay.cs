@@ -14,7 +14,6 @@ namespace lightstudio
     {
         public List<ledbox> ledboxList = new List<ledbox>();
         public List<ledbox> highlightedBoxes = new List<ledbox>();
-        System.ComponentModel.ComponentResourceManager resources;
 
         public enum DeviceType { Display49Inch, LEDStrip};
         public DeviceDisplay()
@@ -50,8 +49,6 @@ namespace lightstudio
             else if (dType == DeviceType.LEDStrip)
                 CreateLEDStripBoxes(numLEDS);
 
-
-
         }
 
         void CreateLEDStripBoxes(int numLEDS)
@@ -64,8 +61,7 @@ namespace lightstudio
 
         void Create49InchDisplayBoxes()
         {
-            //this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
-
+            
             ledboxList = new List<ledbox>();
             int numTopBoxes = 5;
             int numVerticalBoxes = 21;
@@ -105,8 +101,6 @@ namespace lightstudio
                 this.Controls.Add(newTopBoxR);
                 ledboxList.Add(newTopBoxR);
             }
-
-
 
             for (int i = 0; i < numVerticalBoxes; i++)
             {
@@ -252,15 +246,11 @@ namespace lightstudio
             for (int i = 0; i < boxesToHighlight.Count; i++)
             {
                 
-                //boxesToHighlight[i].HighlightCell(true);
-
-                
                 for(int j=0; j< ledbox.numToBox[boxesToHighlight[i].pixelNumber].Count; j++)
                 {
                     ledbox.numToBox[boxesToHighlight[i].pixelNumber][j].HighlightCell(true);
                 
                 }
-                //boxesToHighlight[i].Invalidate();
             }
         }
 

@@ -100,16 +100,10 @@ C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\bin\Debug\ne
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\bin\Debug\net5.0-windows\runtimes\win\lib\netstandard2.0\System.IO.Ports.dll
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.csproj.AssemblyReference.cache
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.DeviceDisplay.resources
-C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.DeviceDisplayPanel.resources
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.Form1.resources
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.ledbox.resources
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.Properties.Resources.resources
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.serialManagerForm.resources
-C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.AbstractScrollbar.resources
-C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.Scrollbar.HorizontalScrollbar.resources
-C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.Scrollbar.VerticalScrollbar.resources
-C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.Timeline.resources
-C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.Timeline2.resources
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.csproj.GenerateResource.cache
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.AssemblyInfoInputs.cache
