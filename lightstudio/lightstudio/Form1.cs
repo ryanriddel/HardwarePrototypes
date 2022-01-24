@@ -163,6 +163,9 @@ namespace lightstudio
             serialWriteOut[numBytes - 1] = Convert.ToByte('>');
             serialManager.port.Write(serialWriteOut, 0, numBytes);
 
+            serialWriteOut[0] = Convert.ToByte('$');
+            serialManager.port.Write(serialWriteOut, 0, 1);
+
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -354,7 +357,6 @@ namespace lightstudio
             currentSelectedIndex = 0;
             watch.Start();
             timer1.Interval = 5;
-            //timer1.Enabled = true;
             timer1.Start();
         }
 
