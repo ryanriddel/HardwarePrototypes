@@ -1,7 +1,13 @@
 #include <Adafruit_NeoPixel.h>
+
+//if you want to change NUMPIXELMAPBYTES you will also have to change
+//the relevant constant in the desktop application (lightstudio) or this wont work.
+#define NUMPIXELMAPBYTES 16
+
+
 struct Subframe
 {
-  byte pixelMap[16] = {0};
+  byte pixelMap[NUMPIXELMAPBYTES] = {0};
   byte colorRed = 0;
   byte colorGreen = 0;
   byte colorBlue = 0;
@@ -39,8 +45,6 @@ bool isMessageStarted = false;
 
 bool isAnimationPending = false;
 bool isAnimationPlaying = false;
-long previousAnimationEventTime = 0;
-long nextAnimationEventTime = 0;
 int currentAnimationFrame = 0;
 long frameTimes[256] = {0};
 
@@ -95,7 +99,6 @@ void loop() {
 
   if(isAnimationPending)
   {
-    previousAnimationEventTime=millis();
     isAnimationPending = false;
     isAnimationPlaying = true;
     currentAnimationFrame = 0;
@@ -165,7 +168,6 @@ void ApplyFrame(Frame& frame)
   pixels.clear();
   
 
-
   for(int i=0; i<frame.subframeCount; i++)
   {
   
@@ -174,7 +176,7 @@ void ApplyFrame(Frame& frame)
     byte colorB = frame.subframes[i].colorBlue;
     
   
-    for(int a=0; a<16; a++)
+    for(int a=0; a<NUMPIXELMAPBYTES; a++)
     {
       for(int b=0; b<8; b++)
       {
@@ -209,16 +211,18 @@ void getFrameFromBytes(Frame& newFrame, byte byteArray[])
   newFrame.subframeCount = numSubframes;
   newFrame.frameDuration = byteArray[1] + (byteArray[2]<<8);
 
+  int bytesPerSubframe = NUMPIXELMAPBYTES + 3;
+
   for(int j=0; j<numSubframes; j++)
   {
 
-    newFrame.subframes[j].colorRed = byteArray[j*19 + 3];
-    newFrame.subframes[j].colorGreen = byteArray[j*19 + 4];
-    newFrame.subframes[j].colorBlue = byteArray[j*19 + 5];
+    newFrame.subframes[j].colorRed = byteArray[j*bytesPerSubframe + 3];
+    newFrame.subframes[j].colorGreen = byteArray[j*bytesPerSubframe + 4];
+    newFrame.subframes[j].colorBlue = byteArray[j*bytesPerSubframe + 5];
 
-    for(int i=0; i<16; i++)
+    for(int i=0; i<NUMPIXELMAPBYTES; i++)
     {
-      newFrame.subframes[j].pixelMap[i] = byteArray[j*19 + 6 + i];
+      newFrame.subframes[j].pixelMap[i] = byteArray[j*bytesPerSubframe + 6 + i];
     }
 
   }
