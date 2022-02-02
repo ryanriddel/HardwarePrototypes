@@ -1,5 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
+
+
 //if you want to change NUMPIXELMAPBYTES you will also have to change
 //the relevant constant in the desktop application (lightstudio) or this wont work.
 #define NUMPIXELMAPBYTES 16
@@ -28,6 +30,7 @@ int frameCount = 0;
 
 #define NUMPIXELS 38
 #define PIN        5
+#define SERIALINPUTBUFFERSIZE 2048
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -38,13 +41,14 @@ void setup() {
   FlashLEDS();
   clearPixels();
 }
+
 //circular buffer
-byte serialInputBuffer[2048]={0};
+byte serialInputBuffer[SERIALINPUTBUFFERSIZE]={0};
 int serialInputBufferIndex = 0;
+int serialInputBufferReadIndex = 0;
+int serialInputBufferWriteIndex = 0;
+long timeOfLastSerialRead;
 
-
-bool isMessageOver = false;
-bool isMessageStarted = false;
 
 bool isAnimationPending = false;
 bool isAnimationPlaying = false;
@@ -53,51 +57,66 @@ long frameTimes[256] = {0};
 
 void loop() {
   // put your main code here, to run repeatedly:
+  
+  
+  //read serial in as quickly as possible
   while(Serial.available())
   {
     char inByte = Serial.read();
-    
-    
-    if(inByte == '<'  && !isMessageStarted)
-    {
-      serialInputBufferIndex=0;
-      isMessageStarted = true;
-    }
-    else if(inByte == '>' && isMessageStarted)
-    {
-      isMessageOver = true;
-    }
-    else if(inByte == '$' && Serial.available() == 0)
-    {
-      isAnimationPending = true;
-    }
-    else
-    {
-      serialInputBuffer[serialInputBufferIndex] = inByte;
-      serialInputBufferIndex++;
-    }
+
+    serialInputBuffer[serialInputBufferWriteIndex++] = inByte;
+
+    if(serialInputBufferWriteIndex >= SERIALINPUTBUFFERSIZE)
+      serialInputBufferWriteIndex = 0;
+
+    timeOfLastSerialRead = millis();
   }
 
-  if(isMessageOver)
+  //if there are at least 4 bytes to read
+  if(abs(serialInputBufferReadIndex - serialInputBufferWriteIndex) >= 4)
   {
-    isMessageOver = false;
-    isMessageStarted = false;
-    
-    String messageOut = "";
-    messageOut += serialInputBufferIndex;
-    messageOut += ":";
-    for(int i=0; i<serialInputBufferIndex; i++)
-    {
-      messageOut += serialInputBuffer[i];
-      messageOut += " ";
-    }
-    //Serial.println(messageOut);
-    serialInputBufferIndex = 0;
-    //Serial.flush();
-    getFrameFromBytes(frames[frameCount], serialInputBuffer);
-    frameCount++;
+    //arbitrary 5ms wait for all serial data to come in
+      if(millis() - timeOfLastSerialRead > 5)
+      {
+        
+        if(serialInputBuffer[serialInputBufferReadIndex] == 0xAB && serialInputBuffer[serialInputBufferReadIndex+1] == 0xCD && serialInputBuffer[serialInputBufferReadIndex+2] == 0xEF)
+        {
+          //this is a frame
+          int bytesRead = getFrameFromBytes(frames[frameCount], serialInputBuffer, serialInputBufferReadIndex + 3);
+          frameCount++;
+          serialInputBufferReadIndex = (serialInputBufferReadIndex + 3 + bytesRead) % SERIALINPUTBUFFERSIZE;
+        }
+        else if(serialInputBuffer[serialInputBufferReadIndex] == 0xBA && serialInputBuffer[serialInputBufferReadIndex+1] == 0xDC && serialInputBuffer[serialInputBufferReadIndex+2] == 0xFE)
+        {
+          //Serial.println("COMMAND RECEIVED");
+          //this is a command
+          if(serialInputBuffer[serialInputBufferReadIndex+3] == 0xAA)
+          {
+            //clear frame buffer
+            //Serial.println("CLEAR FB");
+            frameCount = 0;
+          }
+          else if(serialInputBuffer[serialInputBufferReadIndex+3] == 0xBB)
+          {
+            //Serial.println("PLAYING ANIMATION");
+            //play animation
+            isAnimationPending = true;
+          }
+          else
+          {
+            //undefined command
+            Serial.println("UNDEFINED COMMAND!");
+          }
 
-    
+          serialInputBufferReadIndex = (serialInputBufferReadIndex + 4) % SERIALINPUTBUFFERSIZE;
+          
+        }
+        else
+        {
+          //this is undefined
+          Serial.println("PARSING ERROR!");
+        }
+      }
   }
 
   if(isAnimationPending)
@@ -196,29 +215,33 @@ void clearPixels()
   pixels.show();
 }
 
-void getFrameFromBytes(Frame& newFrame, byte byteArray[])
+//returns the number of bytes read
+int getFrameFromBytes(Frame& newFrame, byte byteArray[], int offset)
 {
   newFrame.subframeCount = 0;
-  byte numSubframes = byteArray[0];
+  byte numSubframes = byteArray[offset % SERIALINPUTBUFFERSIZE];
 
   
   newFrame.subframeCount = numSubframes;
-  newFrame.frameDuration = byteArray[1] + (byteArray[2]<<8);
+  newFrame.frameDuration = byteArray[(offset + 1) % SERIALINPUTBUFFERSIZE] + (byteArray[(offset + 2) % SERIALINPUTBUFFERSIZE]<<8);
 
   int bytesPerSubframe = NUMPIXELMAPBYTES + 3;
 
   for(int j=0; j<numSubframes; j++)
   {
 
-    newFrame.subframes[j].colorRed = byteArray[j*bytesPerSubframe + 3];
-    newFrame.subframes[j].colorGreen = byteArray[j*bytesPerSubframe + 4];
-    newFrame.subframes[j].colorBlue = byteArray[j*bytesPerSubframe + 5];
+    newFrame.subframes[j].colorRed = byteArray[(j*bytesPerSubframe + 3 + offset) % SERIALINPUTBUFFERSIZE];
+    newFrame.subframes[j].colorGreen = byteArray[(j*bytesPerSubframe + 4 + offset) % SERIALINPUTBUFFERSIZE];
+    newFrame.subframes[j].colorBlue = byteArray[(j*bytesPerSubframe + 5 + offset) % SERIALINPUTBUFFERSIZE];
 
     for(int i=0; i<NUMPIXELMAPBYTES; i++)
     {
-      newFrame.subframes[j].pixelMap[i] = byteArray[j*bytesPerSubframe + 6 + i];
+      newFrame.subframes[j].pixelMap[i] = byteArray[(j*bytesPerSubframe + 6 + i + offset) % SERIALINPUTBUFFERSIZE];
     }
 
   }
-  
+
+  int totalBytesRead = bytesPerSubframe * numSubframes + 3;
+
+  return totalBytesRead; 
 }

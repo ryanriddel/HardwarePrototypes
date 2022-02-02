@@ -114,7 +114,7 @@ namespace lightstudio
             }
             return colorBitmap;
         }
-        private void button2_Click(object sender, EventArgs e)
+        private void buttonPeekFrame_Click(object sender, EventArgs e)
         {
             bool isSerialEnabled = true;
             if (serialManager.port == null)
@@ -127,24 +127,28 @@ namespace lightstudio
 
 
             byte numSubframes = (byte)colorBitmap.Keys.Count;
-            int numBytes = 1 + 1 + 2 + numSubframes * (3 + 16) + 1;
+            int numBytes = 3 + 1 + 2 + numSubframes * (3 + 16);
             byte[] serialWriteOut = new byte[numBytes];
 
-            byte[] commandByte = { Convert.ToByte('<') };
-            serialWriteOut[0] = Convert.ToByte('<'); //start of packet character
-            serialWriteOut[1] = numSubframes;
+            //start of frame header
+            serialWriteOut[0] = 171; //0xAB
+            serialWriteOut[1] = 205; //0xCD
+            serialWriteOut[2] = 239; //0xEF
+            
+            
+            serialWriteOut[3] = numSubframes;
 
 
             Int16 subframeDuration = Convert.ToInt16(numericUpDown1.Value);
-            serialWriteOut[2] = (byte)(subframeDuration & 255);
-            serialWriteOut[3] = (byte)(subframeDuration >> 8);
+            serialWriteOut[4] = (byte)(subframeDuration & 255);
+            serialWriteOut[5] = (byte)(subframeDuration >> 8);
             
             for(int i=0; i<colorBitmap.Keys.Count; i++)
             {
                 Color clr = colorBitmap.Keys.ElementAt<Color>(i);
-                serialWriteOut[4 + i * 19] = clr.R;
-                serialWriteOut[5 + i * 19] = clr.G;
-                serialWriteOut[6 + i * 19] = clr.B;
+                serialWriteOut[6 + i * 19] = clr.R;
+                serialWriteOut[7 + i * 19] = clr.G;
+                serialWriteOut[8 + i * 19] = clr.B;
 
                 
                 byte[] colorByteBuffer = { clr.R, clr.G, clr.B };
@@ -157,25 +161,30 @@ namespace lightstudio
                     
                     System.Diagnostics.Debug.Write(Convert.ToString(colorBitmap[clr].byteArray[j], 10));
                     System.Diagnostics.Debug.Write("  ");
-                    serialWriteOut[7 + j + i * 19] = colorBitmap[clr].byteArray[j];
+                    serialWriteOut[9 + j + i * 19] = colorBitmap[clr].byteArray[j];
                 }
                 System.Diagnostics.Debug.WriteLine("");
 
             }
             System.Diagnostics.Debug.WriteLine("NumBytes: " + numBytes);
-            serialWriteOut[numBytes - 1] = Convert.ToByte('>');
+            //serialWriteOut[numBytes - 1] = Convert.ToByte('>');
             
             if(isSerialEnabled)
                 serialManager.port.Write(serialWriteOut, 0, numBytes);
 
-            serialWriteOut[0] = Convert.ToByte('$');
+
+            //send play command
+            serialWriteOut[0] = 186;  //0xBA
+            serialWriteOut[1] = 220;  //0xDC
+            serialWriteOut[2] = 254;  //0xFE
+            serialWriteOut[3] = 187;  //0xBB: play animation  
 
             if(isSerialEnabled)
-                serialManager.port.Write(serialWriteOut, 0, 1);
+                serialManager.port.Write(serialWriteOut, 0, 4);
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void buttonAddFrame_Click(object sender, EventArgs e)
         {
             Dictionary < Color, pixelBitmap > colorBitmap = GetDisplayPanelColorBitmap();
 
@@ -327,35 +336,40 @@ namespace lightstudio
 
         private void buttonPlay_Click(object sender, EventArgs e)
         {
-            //first, serialize the frames. then, send it over serial.  Finally, send a '$'
+            //first, send a clear command.  Then, serialize the frames and send over serial.  Finally, send a play command
             bool isSerialEnabled = true;
             if (serialManager.port == null)
                 isSerialEnabled=false;
             else if (!serialManager.port.IsOpen)
                 isSerialEnabled=false;
 
+            byte[] clearCommand = { 186, 220, 254, 170 };
+            if (isSerialEnabled)
+                serialManager.port.Write(clearCommand, 0, 4);
+
             foreach (ListViewItem lvitem in listView1.Items)
             {
                 Frame frm = (Frame) lvitem.Tag;
                 byte[] frameBytes = GetBytesFromFrame(frm);
-                byte[] serialMsg = new byte[frameBytes.Length + 2];
+                byte[] serialMsg = new byte[frameBytes.Length + 3];
 
-                serialMsg[0] = Convert.ToByte('<');
-                serialMsg[frameBytes.Length + 1] = Convert.ToByte('>');
+                serialMsg[0] = 171;
+                serialMsg[1] = 205;
+                serialMsg[2] = 239;
 
                 for (int i = 0; i < frameBytes.Length; i++)
-                    serialMsg[i + 1] = frameBytes[i];
+                    serialMsg[i + 3] = frameBytes[i];
 
                 if(isSerialEnabled)
-                    serialManager.port.Write(serialMsg, 0, frameBytes.Length + 2);
+                    serialManager.port.Write(serialMsg, 0, serialMsg.Length);
 
             }
             //give the microcontroller a moment to receive and process the serial data
-            System.Threading.Thread.Sleep(25);
+            System.Threading.Thread.Sleep(10);
             
-            byte[] playCharacter = new byte[] { Convert.ToByte('$') };
+            byte[] playCommand = new byte[] { 186,220,254,187};
             if(isSerialEnabled)
-                serialManager.port.Write(playCharacter, 0, 1);
+                serialManager.port.Write(playCommand, 0, 4);
 
             listView1.Items[0].Selected = true;
             isAnimationPlaying = true;

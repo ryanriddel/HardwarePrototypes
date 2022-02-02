@@ -45,10 +45,10 @@ namespace lightstudio
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buttonAddFrame = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.button2 = new System.Windows.Forms.Button();
+            this.buttonPeekFrame = new System.Windows.Forms.Button();
             this.deviceDisplay2 = new lightstudio.DeviceDisplay();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
@@ -235,15 +235,15 @@ namespace lightstudio
             this.label5.TabIndex = 8;
             this.label5.Text = "Duration";
             // 
-            // button1
+            // buttonAddFrame
             // 
-            this.button1.Location = new System.Drawing.Point(264, 101);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(160, 38);
-            this.button1.TabIndex = 3;
-            this.button1.Text = "Add Frame";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.buttonAddFrame.Location = new System.Drawing.Point(264, 101);
+            this.buttonAddFrame.Name = "buttonAddFrame";
+            this.buttonAddFrame.Size = new System.Drawing.Size(160, 38);
+            this.buttonAddFrame.TabIndex = 3;
+            this.buttonAddFrame.Text = "Add Frame";
+            this.buttonAddFrame.UseVisualStyleBackColor = true;
+            this.buttonAddFrame.Click += new System.EventHandler(this.buttonAddFrame_Click);
             // 
             // toolStrip1
             // 
@@ -263,15 +263,15 @@ namespace lightstudio
             this.toolStripLabel1.Text = "Connection";
             this.toolStripLabel1.Click += new System.EventHandler(this.toolStripLabel1_Click);
             // 
-            // button2
+            // buttonPeekFrame
             // 
-            this.button2.Location = new System.Drawing.Point(10, 188);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(136, 29);
-            this.button2.TabIndex = 6;
-            this.button2.Text = "Peek Frame";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.buttonPeekFrame.Location = new System.Drawing.Point(10, 188);
+            this.buttonPeekFrame.Name = "buttonPeekFrame";
+            this.buttonPeekFrame.Size = new System.Drawing.Size(136, 29);
+            this.buttonPeekFrame.TabIndex = 6;
+            this.buttonPeekFrame.Text = "Peek Frame";
+            this.buttonPeekFrame.UseVisualStyleBackColor = true;
+            this.buttonPeekFrame.Click += new System.EventHandler(this.buttonPeekFrame_Click);
             // 
             // deviceDisplay2
             // 
@@ -374,7 +374,7 @@ namespace lightstudio
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Controls.Add(this.button4);
             this.panel3.Controls.Add(this.button3);
-            this.panel3.Controls.Add(this.button2);
+            this.panel3.Controls.Add(this.buttonPeekFrame);
             this.panel3.Location = new System.Drawing.Point(500, 16);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(156, 244);
@@ -463,7 +463,7 @@ namespace lightstudio
             // 
             this.panel4.BackColor = System.Drawing.SystemColors.ControlLight;
             this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel4.Controls.Add(this.button1);
+            this.panel4.Controls.Add(this.buttonAddFrame);
             this.panel4.Controls.Add(this.panel1);
             this.panel4.Controls.Add(this.colorPickerPanel);
             this.panel4.Location = new System.Drawing.Point(12, 39);
@@ -532,10 +532,10 @@ namespace lightstudio
         private System.Windows.Forms.NumericUpDown numericUpDown1;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonAddFrame;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button buttonPeekFrame;
         private DeviceDisplay deviceDisplay2;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ColumnHeader columnHeader1;
