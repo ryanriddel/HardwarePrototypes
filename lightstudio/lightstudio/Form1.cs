@@ -116,10 +116,13 @@ namespace lightstudio
         }
         private void button2_Click(object sender, EventArgs e)
         {
-            if (serialManager.isConnected == false)
-                return;
+            bool isSerialEnabled = true;
+            if (serialManager.port == null)
+                isSerialEnabled = false;
+            else if (!serialManager.port.IsOpen)
+                isSerialEnabled = false;
 
-            
+
             Dictionary<Color, pixelBitmap> colorBitmap=GetDisplayPanelColorBitmap();
 
 
@@ -161,10 +164,14 @@ namespace lightstudio
             }
             System.Diagnostics.Debug.WriteLine("NumBytes: " + numBytes);
             serialWriteOut[numBytes - 1] = Convert.ToByte('>');
-            serialManager.port.Write(serialWriteOut, 0, numBytes);
+            
+            if(isSerialEnabled)
+                serialManager.port.Write(serialWriteOut, 0, numBytes);
 
             serialWriteOut[0] = Convert.ToByte('$');
-            serialManager.port.Write(serialWriteOut, 0, 1);
+
+            if(isSerialEnabled)
+                serialManager.port.Write(serialWriteOut, 0, 1);
 
         }
 

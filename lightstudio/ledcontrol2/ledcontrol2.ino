@@ -35,11 +35,14 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(38400);
   pixels.begin();
+  FlashLEDS();
   clearPixels();
 }
+//circular buffer
+byte serialInputBuffer[2048]={0};
+int serialInputBufferIndex = 0;
 
-byte inputBuffer[512]={0};
-int inputBufferLength = 0;
+
 bool isMessageOver = false;
 bool isMessageStarted = false;
 
@@ -53,10 +56,11 @@ void loop() {
   while(Serial.available())
   {
     char inByte = Serial.read();
-
+    
+    
     if(inByte == '<'  && !isMessageStarted)
     {
-      inputBufferLength=0;
+      serialInputBufferIndex=0;
       isMessageStarted = true;
     }
     else if(inByte == '>' && isMessageStarted)
@@ -66,12 +70,11 @@ void loop() {
     else if(inByte == '$' && Serial.available() == 0)
     {
       isAnimationPending = true;
-      previousAnimationEventTime = millis();
     }
     else
     {
-      inputBuffer[inputBufferLength] = inByte;
-      inputBufferLength++;
+      serialInputBuffer[serialInputBufferIndex] = inByte;
+      serialInputBufferIndex++;
     }
   }
 
@@ -81,17 +84,17 @@ void loop() {
     isMessageStarted = false;
     
     String messageOut = "";
-    messageOut += inputBufferLength;
+    messageOut += serialInputBufferIndex;
     messageOut += ":";
-    for(int i=0; i<inputBufferLength; i++)
+    for(int i=0; i<serialInputBufferIndex; i++)
     {
-      messageOut += inputBuffer[i];
+      messageOut += serialInputBuffer[i];
       messageOut += " ";
     }
     //Serial.println(messageOut);
-    inputBufferLength = 0;
+    serialInputBufferIndex = 0;
     //Serial.flush();
-    getFrameFromBytes(frames[frameCount], inputBuffer);
+    getFrameFromBytes(frames[frameCount], serialInputBuffer);
     frameCount++;
 
     
@@ -119,6 +122,7 @@ void loop() {
       {
         //end animation
         isAnimationPlaying = false;
+        frameCount = 0;
         clearPixels();
       }
       else
@@ -151,14 +155,6 @@ void FlashLEDS()
  
 }
 
-void ApplyFrames(Frame frameArray[], int frameCount)
-{
-  for(int i=0; i<frameCount; i++)
-  {
-    ApplyFrame(frameArray[i]);
-    //delay(frameArray[i].frameDuration);
-  }
-}
 
 void ApplyFrame(Frame& frame)
 {
@@ -189,8 +185,6 @@ void ApplyFrame(Frame& frame)
   }
   
   pixels.show();
-  //delay(frame.frameDuration);
-  //clearPixels();
 }
 
 void clearPixels()
