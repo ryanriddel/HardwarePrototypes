@@ -17,6 +17,13 @@ struct Subframe
   
 };
 
+struct PixelColor
+{
+  byte colorRed = 0;
+  byte colorGreen = 0;
+  byte colorBlue = 0;
+};
+
 struct Frame
 {
   unsigned int subframeCount = 0;
@@ -48,12 +55,15 @@ int serialInputBufferIndex = 0;
 int serialInputBufferReadIndex = 0;
 int serialInputBufferWriteIndex = 0;
 long timeOfLastSerialRead;
-
+long bytesProcessed=0;
+long bytesWritten=0;
 
 bool isAnimationPending = false;
 bool isAnimationPlaying = false;
 int currentAnimationFrame = 0;
 long frameTimes[256] = {0};
+
+PixelColor pixelColors[NUMPIXELS];
 
 void loop() {
   // put your main code here, to run repeatedly:
@@ -69,11 +79,12 @@ void loop() {
     if(serialInputBufferWriteIndex >= SERIALINPUTBUFFERSIZE)
       serialInputBufferWriteIndex = 0;
 
+    bytesWritten++;
     timeOfLastSerialRead = millis();
   }
 
   //if there are at least 4 bytes to read
-  if(abs(serialInputBufferReadIndex - serialInputBufferWriteIndex) >= 4)
+  if(abs(serialInputBufferReadIndex - serialInputBufferWriteIndex) >= 4 || (bytesWritten-bytesProcessed>=4))
   {
     //arbitrary 5ms wait for all serial data to come in
       if(millis() - timeOfLastSerialRead > 5)
@@ -85,20 +96,20 @@ void loop() {
           int bytesRead = getFrameFromBytes(frames[frameCount], serialInputBuffer, serialInputBufferReadIndex + 3);
           frameCount++;
           serialInputBufferReadIndex = (serialInputBufferReadIndex + 3 + bytesRead) % SERIALINPUTBUFFERSIZE;
+
+          bytesProcessed+=3+bytesRead;
         }
         else if(serialInputBuffer[serialInputBufferReadIndex] == 0xBA && serialInputBuffer[serialInputBufferReadIndex+1] == 0xDC && serialInputBuffer[serialInputBufferReadIndex+2] == 0xFE)
         {
-          //Serial.println("COMMAND RECEIVED");
           //this is a command
           if(serialInputBuffer[serialInputBufferReadIndex+3] == 0xAA)
           {
             //clear frame buffer
-            //Serial.println("CLEAR FB");
             frameCount = 0;
+            
           }
           else if(serialInputBuffer[serialInputBufferReadIndex+3] == 0xBB)
           {
-            //Serial.println("PLAYING ANIMATION");
             //play animation
             isAnimationPending = true;
           }
@@ -107,14 +118,19 @@ void loop() {
             //undefined command
             Serial.println("UNDEFINED COMMAND!");
           }
-
+          bytesProcessed+=4;
           serialInputBufferReadIndex = (serialInputBufferReadIndex + 4) % SERIALINPUTBUFFERSIZE;
           
         }
         else
         {
           //this is undefined
-          Serial.println("PARSING ERROR!");
+          Serial.println("ERROR!");
+          serialInputBufferReadIndex = 0;
+          serialInputBufferWriteIndex = 0;
+          bytesProcessed=0;
+          bytesWritten=0;
+          frameCount = 0;
         }
       }
   }
@@ -180,7 +196,7 @@ void ApplyFrame(Frame& frame)
   if(frame.subframeCount < 1)
     return;
     
-  pixels.clear();
+  //pixels.clear();
   
 
   for(int i=0; i<frame.subframeCount; i++)
@@ -197,7 +213,13 @@ void ApplyFrame(Frame& frame)
       {
         if( ((frame.subframes[i].pixelMap[a] >> b) & 1) == 1)
         {
-          pixels.setPixelColor(a*8+b, pixels.Color(colorR, colorG, colorB));
+          if(pixelColors[a*8+b].colorRed != colorR || pixelColors[a*8+b].colorGreen != colorG || pixelColors[a*8+b].colorBlue != colorB)
+          {
+            pixels.setPixelColor(a*8+b, pixels.Color(colorR, colorG, colorB));
+            pixelColors[a*8+b].colorRed=colorR;
+            pixelColors[a*8+b].colorGreen=colorG;
+            pixelColors[a*8+b].colorBlue=colorB;
+          }
         }
       }
     }
@@ -211,6 +233,9 @@ void clearPixels()
   for(int i=0; i<NUMPIXELS; i++)
   {
     pixels.setPixelColor(i, pixels.Color(0,0,0));
+    pixelColors[i].colorRed=0;
+    pixelColors[i].colorGreen=0;
+    pixelColors[i].colorBlue=0;
   }
   pixels.show();
 }

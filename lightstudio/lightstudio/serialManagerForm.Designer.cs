@@ -131,6 +131,7 @@ namespace lightstudio
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Serial Connection Manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.serialManagerForm_FormClosing);
+            this.Load += new System.EventHandler(this.serialManagerForm_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);

@@ -73,16 +73,23 @@ namespace lightstudio
 
             }
         }
-
+        int errorCount = 0;
         private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             string readResult = port.ReadExisting();
-            System.Diagnostics.Debug.WriteLine("Serial data received: " + readResult);
+            
+                errorCount++;
+                System.Diagnostics.Debug.WriteLine("ERRORS: " + errorCount);
         }
 
         private void serialManagerForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             
+        }
+
+        private void serialManagerForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

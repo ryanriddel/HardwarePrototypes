@@ -300,7 +300,7 @@ namespace lightstudio
         {
 
         }
-
+        int numFramesPlayed = 0;
         bool isAnimationPlaying = false;
         long elapsedMilliseconds = 0;
         int currentSelectedIndex = 0;
@@ -317,6 +317,8 @@ namespace lightstudio
                     //move to the next Frame
                     if (currentSelectedIndex < listView1.Items.Count-1)
                     {
+                        numFramesPlayed++;
+                        System.Diagnostics.Debug.WriteLine("#Frames: " + numFramesPlayed);
                         currentSelectedIndex++;
                         listView1.Items[currentSelectedIndex].Selected = true;
                         listView1.Items[currentSelectedIndex].EnsureVisible();
@@ -343,6 +345,9 @@ namespace lightstudio
             else if (!serialManager.port.IsOpen)
                 isSerialEnabled=false;
 
+            if(sender != null && e != null)
+                numFramesPlayed = 0;
+
             byte[] clearCommand = { 186, 220, 254, 170 };
             if (isSerialEnabled)
                 serialManager.port.Write(clearCommand, 0, 4);
@@ -365,7 +370,7 @@ namespace lightstudio
 
             }
             //give the microcontroller a moment to receive and process the serial data
-            System.Threading.Thread.Sleep(10);
+            //System.Threading.Thread.Sleep(10);
             
             byte[] playCommand = new byte[] { 186,220,254,187};
             if(isSerialEnabled)
