@@ -37,13 +37,13 @@ int frameCount = 0;
 
 #define NUMPIXELS 38
 #define PIN        5
-#define SERIALINPUTBUFFERSIZE 2048
+#define SERIALINPUTBUFFERSIZE 4096
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(38400);
+  Serial.begin(115200);
   pixels.begin();
   FlashLEDS();
   clearPixels();
@@ -51,9 +51,9 @@ void setup() {
 
 //circular buffer
 byte serialInputBuffer[SERIALINPUTBUFFERSIZE]={0};
-int serialInputBufferIndex = 0;
-int serialInputBufferReadIndex = 0;
-int serialInputBufferWriteIndex = 0;
+
+long serialInputBufferReadIndex = 0;
+long serialInputBufferWriteIndex = 0;
 long timeOfLastSerialRead;
 long bytesProcessed=0;
 long bytesWritten=0;
@@ -87,10 +87,10 @@ void loop() {
   if(abs(serialInputBufferReadIndex - serialInputBufferWriteIndex) >= 4 || (bytesWritten-bytesProcessed>=4))
   {
     //arbitrary 5ms wait for all serial data to come in
-      if(millis() - timeOfLastSerialRead > 5)
+      if(millis() - timeOfLastSerialRead > 2)
       {
         
-        if(serialInputBuffer[serialInputBufferReadIndex] == 0xAB && serialInputBuffer[serialInputBufferReadIndex+1] == 0xCD && serialInputBuffer[serialInputBufferReadIndex+2] == 0xEF)
+        if(serialInputBuffer[serialInputBufferReadIndex] == 0xAB && serialInputBuffer[(serialInputBufferReadIndex+1) % SERIALINPUTBUFFERSIZE] == 0xCD && serialInputBuffer[(serialInputBufferReadIndex+2) % SERIALINPUTBUFFERSIZE] == 0xEF)
         {
           //this is a frame
           int bytesRead = getFrameFromBytes(frames[frameCount], serialInputBuffer, serialInputBufferReadIndex + 3);
@@ -99,16 +99,16 @@ void loop() {
 
           bytesProcessed+=3+bytesRead;
         }
-        else if(serialInputBuffer[serialInputBufferReadIndex] == 0xBA && serialInputBuffer[serialInputBufferReadIndex+1] == 0xDC && serialInputBuffer[serialInputBufferReadIndex+2] == 0xFE)
+        else if(serialInputBuffer[serialInputBufferReadIndex] == 0xBA && serialInputBuffer[(serialInputBufferReadIndex+1) % SERIALINPUTBUFFERSIZE] == 0xDC && serialInputBuffer[(serialInputBufferReadIndex+2) % SERIALINPUTBUFFERSIZE] == 0xFE)
         {
           //this is a command
-          if(serialInputBuffer[serialInputBufferReadIndex+3] == 0xAA)
+          if(serialInputBuffer[(serialInputBufferReadIndex+3) % SERIALINPUTBUFFERSIZE] == 0xAA)
           {
             //clear frame buffer
             frameCount = 0;
             
           }
-          else if(serialInputBuffer[serialInputBufferReadIndex+3] == 0xBB)
+          else if(serialInputBuffer[(serialInputBufferReadIndex+3) % SERIALINPUTBUFFERSIZE] == 0xBB)
           {
             //play animation
             isAnimationPending = true;
@@ -125,7 +125,15 @@ void loop() {
         else
         {
           //this is undefined
-          Serial.println("ERROR!");
+          String errorMessage = "";
+          errorMessage += serialInputBufferReadIndex;
+          errorMessage += ".";
+          errorMessage += serialInputBufferWriteIndex;
+          errorMessage += ".";
+          errorMessage += bytesWritten;
+          errorMessage += ".";
+          errorMessage += bytesProcessed;
+          Serial.println(errorMessage);
           serialInputBufferReadIndex = 0;
           serialInputBufferWriteIndex = 0;
           bytesProcessed=0;

@@ -67,7 +67,7 @@ namespace lightstudio
             this.baudTextBox.Name = "baudTextBox";
             this.baudTextBox.Size = new System.Drawing.Size(90, 27);
             this.baudTextBox.TabIndex = 3;
-            this.baudTextBox.Text = "38400";
+            this.baudTextBox.Text = "115200";
             // 
             // label2
             // 
