@@ -3,8 +3,10 @@ This readme pertains to lightstudio only.  This repo needs to be cleaned up.
 Serial Protocol
 
 
-				frame message
+frame message
+
 [-----header-----][---------framedata-----------]
+
 [0xab][0xcd][0xef][#subframes][duration][sframes]
 
 0xab = 171
@@ -12,8 +14,12 @@ Serial Protocol
 0xef = 239
 
 
-	   command message
+
+
+command message
+
 [-----header-----][--command--]
+
 [0xba][0xdc][0xfe][command byte]
 
 commands:
