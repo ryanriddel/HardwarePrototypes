@@ -83,10 +83,10 @@ void loop() {
     timeOfLastSerialRead = millis();
   }
 
-  //if there are at least 4 bytes to read
+  //this is where we process data...if there are at least 4 bytes to read
   if(abs(serialInputBufferReadIndex - serialInputBufferWriteIndex) >= 4 || (bytesWritten-bytesProcessed>=4))
   {
-    //arbitrary 5ms wait for all serial data to come in
+    //arbitrary wait for all serial data to come in
       if(millis() - timeOfLastSerialRead > 2)
       {
         
@@ -124,7 +124,7 @@ void loop() {
         }
         else
         {
-          //this is undefined
+          //this is undefined. send an error message
           String errorMessage = "";
           errorMessage += serialInputBufferReadIndex;
           errorMessage += ".";
@@ -204,8 +204,6 @@ void ApplyFrame(Frame& frame)
   if(frame.subframeCount < 1)
     return;
     
-  //pixels.clear();
-  
 
   for(int i=0; i<frame.subframeCount; i++)
   {
@@ -221,7 +219,8 @@ void ApplyFrame(Frame& frame)
       {
         if( ((frame.subframes[i].pixelMap[a] >> b) & 1) == 1)
         {
-          if(pixelColors[a*8+b].colorRed != colorR || pixelColors[a*8+b].colorGreen != colorG || pixelColors[a*8+b].colorBlue != colorB)
+          //check to see if this pixel is already the correct color to cut down on unnecessary data transfers
+          if(pixelColors[a*8+b].colorRed != colorR || pixelColors[a*8+b].colorGreen != colorG || pixelColors[a*8+b].colorBlue != colorB )
           {
             pixels.setPixelColor(a*8+b, pixels.Color(colorR, colorG, colorB));
             pixelColors[a*8+b].colorRed=colorR;
