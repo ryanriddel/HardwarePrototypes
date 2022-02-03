@@ -174,15 +174,9 @@ namespace lightstudio
         private void DeviceDisplay_MouseDown(object sender, MouseEventArgs e)
         {
             RectStartPoint = e.Location;
-            //this.Invalidate();
-
             if (e.Button == MouseButtons.Left)
             {
-                if (Control.ModifierKeys == Keys.Shift)
-                {
-
-                }
-                else if (Control.ModifierKeys == Keys.Control)
+                if (Control.ModifierKeys == Keys.Control || Control.ModifierKeys == Keys.Shift)
                 {
                     for (int i = 0; i < ledboxList.Count; i++)
                     {

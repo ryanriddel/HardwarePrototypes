@@ -1,6 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
-
+//Some LED strips switch the Green and Blue values. Set to false if you are connecting to a Bestech display's LED's
+#define USINGLEDSTRIP false
 
 //if you want to change NUMPIXELMAPBYTES you will also have to change
 //the relevant constant in the desktop application (lightstudio) or this wont work.
@@ -222,7 +223,11 @@ void ApplyFrame(Frame& frame)
           //check to see if this pixel is already the correct color to cut down on unnecessary data transfers
           if(pixelColors[a*8+b].colorRed != colorR || pixelColors[a*8+b].colorGreen != colorG || pixelColors[a*8+b].colorBlue != colorB )
           {
-            pixels.setPixelColor(a*8+b, pixels.Color(colorR, colorG, colorB));
+            if(USINGLEDSTRIP)
+              pixels.setPixelColor(a*8+b, pixels.Color(colorR, colorB, colorG));
+            else
+              pixels.setPixelColor(a*8+b, pixels.Color(colorR, colorG, colorB));
+            
             pixelColors[a*8+b].colorRed=colorR;
             pixelColors[a*8+b].colorGreen=colorG;
             pixelColors[a*8+b].colorBlue=colorB;

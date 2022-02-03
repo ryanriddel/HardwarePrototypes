@@ -419,7 +419,6 @@ namespace lightstudio
             {
                 ListViewItem selectedItem = listView1.SelectedItems[0];
                 Frame frame = (Frame)selectedItem.Tag;
-                System.Diagnostics.Debug.WriteLine("Itemselectionchanged: " + frame.Subframes.Count);
                 pictureBox7.BackgroundImage = frame.frameImage;
                 pictureBox7.BackgroundImageLayout = ImageLayout.Stretch;
             }
