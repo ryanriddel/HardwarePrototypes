@@ -4,8 +4,8 @@
 #define USINGLEDSTRIP false
 
 //if you want to change NUMPIXELMAPBYTES you will also have to change
-//the relevant constant in the desktop application (lightstudio) or this wont work.
-#define NUMPIXELMAPBYTES 16
+//the relevant constant in the desktop application (also called NUMPIXELMAPBYTES)
+#define NUMPIXELMAPBYTES 6
 
 
 struct Subframe

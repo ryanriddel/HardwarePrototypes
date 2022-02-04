@@ -59,8 +59,8 @@ namespace lightstudio
             this.buttonCopy = new System.Windows.Forms.PictureBox();
             this.loopCheckbox = new System.Windows.Forms.CheckBox();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.buttonLoadFrameset = new System.Windows.Forms.Button();
+            this.buttonSaveFrameset = new System.Windows.Forms.Button();
             this.pictureBox7 = new System.Windows.Forms.PictureBox();
             this.buttonPlay = new System.Windows.Forms.PictureBox();
             this.buttonTrash = new System.Windows.Forms.PictureBox();
@@ -372,33 +372,33 @@ namespace lightstudio
             // panel3
             // 
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel3.Controls.Add(this.button4);
-            this.panel3.Controls.Add(this.button3);
+            this.panel3.Controls.Add(this.buttonLoadFrameset);
+            this.panel3.Controls.Add(this.buttonSaveFrameset);
             this.panel3.Controls.Add(this.buttonPeekFrame);
             this.panel3.Location = new System.Drawing.Point(500, 16);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(156, 244);
             this.panel3.TabIndex = 15;
             // 
-            // button4
+            // buttonLoadFrameset
             // 
-            this.button4.Location = new System.Drawing.Point(10, 56);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(136, 29);
-            this.button4.TabIndex = 16;
-            this.button4.Text = "Load Frameset";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.buttonLoadFrameset.Location = new System.Drawing.Point(10, 56);
+            this.buttonLoadFrameset.Name = "buttonLoadFrameset";
+            this.buttonLoadFrameset.Size = new System.Drawing.Size(136, 29);
+            this.buttonLoadFrameset.TabIndex = 16;
+            this.buttonLoadFrameset.Text = "Load Frameset";
+            this.buttonLoadFrameset.UseVisualStyleBackColor = true;
+            this.buttonLoadFrameset.Click += new System.EventHandler(this.buttonLoadFrameset_Click);
             // 
-            // button3
+            // buttonSaveFrameset
             // 
-            this.button3.Location = new System.Drawing.Point(10, 12);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(136, 29);
-            this.button3.TabIndex = 15;
-            this.button3.Text = "Save Frameset";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.buttonSaveFrameset.Location = new System.Drawing.Point(10, 12);
+            this.buttonSaveFrameset.Name = "buttonSaveFrameset";
+            this.buttonSaveFrameset.Size = new System.Drawing.Size(136, 29);
+            this.buttonSaveFrameset.TabIndex = 15;
+            this.buttonSaveFrameset.Text = "Save Frameset";
+            this.buttonSaveFrameset.UseVisualStyleBackColor = true;
+            this.buttonSaveFrameset.Click += new System.EventHandler(this.buttonSaveFrameset_Click);
             // 
             // pictureBox7
             // 
@@ -549,8 +549,8 @@ namespace lightstudio
         private System.Windows.Forms.PictureBox pictureBox7;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button buttonLoadFrameset;
+        private System.Windows.Forms.Button buttonSaveFrameset;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.PictureBox buttonStop;
         private System.Windows.Forms.PictureBox buttonCopy;

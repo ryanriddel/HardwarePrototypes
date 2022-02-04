@@ -9,14 +9,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
 namespace lightstudio
 {
-   
-
+    
     public partial class Form1 : Form
     {
         serialManagerForm serialManager = new serialManagerForm();
+        public const byte NUMPIXELMAPBYTES = 6;
+        byte[] playCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xBB };
+        byte[] clearCommand = new byte[]{ 0xBA, 0xDC, 0xFE, 0xAA };
+        byte[] startOfFrameHeader = new byte[] { 0xAB, 0xCD, 0xEF };
+        
 
         public Form1()
         {
@@ -127,13 +130,16 @@ namespace lightstudio
 
 
             byte numSubframes = (byte)colorBitmap.Keys.Count;
-            int numBytes = 3 + 1 + 2 + numSubframes * (3 + 16);
+            byte bytesPerSubframe = 3 + NUMPIXELMAPBYTES;
+
+            //3 byte header + 1 byte subframe count + 2 byte duration
+            int numBytes = 3 + 1 + 2 + numSubframes * bytesPerSubframe;
             byte[] serialWriteOut = new byte[numBytes];
 
             //start of frame header
-            serialWriteOut[0] = 171; //0xAB
-            serialWriteOut[1] = 205; //0xCD
-            serialWriteOut[2] = 239; //0xEF
+            serialWriteOut[0] = startOfFrameHeader[0]; //0xAB
+            serialWriteOut[1] = startOfFrameHeader[1]; //0xCD
+            serialWriteOut[2] = startOfFrameHeader[2]; //0xEF
             
             
             serialWriteOut[3] = numSubframes;
@@ -146,41 +152,36 @@ namespace lightstudio
             for(int i=0; i<colorBitmap.Keys.Count; i++)
             {
                 Color clr = colorBitmap.Keys.ElementAt<Color>(i);
-                serialWriteOut[6 + i * 19] = clr.R;
-                serialWriteOut[7 + i * 19] = clr.G;
-                serialWriteOut[8 + i * 19] = clr.B;
+                serialWriteOut[6 + i * bytesPerSubframe] = clr.R;
+                serialWriteOut[7 + i * bytesPerSubframe] = clr.G;
+                serialWriteOut[8 + i * bytesPerSubframe] = clr.B;
 
                 
                 byte[] colorByteBuffer = { clr.R, clr.G, clr.B };
                 
                 System.Diagnostics.Debug.WriteLine("Color: " + clr.R.ToString() + "  " + clr.G.ToString() + "  " + clr.B.ToString());
 
-                byte[] pixelBitmapByteBuffer = new byte[16];
-                for (int j = 0; j < 16; j++)
+                byte[] pixelBitmapByteBuffer = new byte[NUMPIXELMAPBYTES];
+
+                for (int j = 0; j < NUMPIXELMAPBYTES; j++)
                 {
                     
                     System.Diagnostics.Debug.Write(Convert.ToString(colorBitmap[clr].byteArray[j], 10));
                     System.Diagnostics.Debug.Write("  ");
-                    serialWriteOut[9 + j + i * 19] = colorBitmap[clr].byteArray[j];
+                    serialWriteOut[9 + j + i * bytesPerSubframe] = colorBitmap[clr].byteArray[j];
                 }
                 System.Diagnostics.Debug.WriteLine("");
 
             }
             System.Diagnostics.Debug.WriteLine("NumBytes: " + numBytes);
-            //serialWriteOut[numBytes - 1] = Convert.ToByte('>');
             
             if(isSerialEnabled)
                 serialManager.port.Write(serialWriteOut, 0, numBytes);
 
 
             //send play command
-            serialWriteOut[0] = 186;  //0xBA
-            serialWriteOut[1] = 220;  //0xDC
-            serialWriteOut[2] = 254;  //0xFE
-            serialWriteOut[3] = 187;  //0xBB: play animation  
-
             if(isSerialEnabled)
-                serialManager.port.Write(serialWriteOut, 0, 4);
+                serialManager.port.Write(playCommand, 0, 4);
 
         }
 
@@ -307,6 +308,8 @@ namespace lightstudio
         System.Diagnostics.Stopwatch watch;
         private void timer1_Tick(object sender, EventArgs e)
         {
+            //this timer is used when playing animations to move through the listview 
+            //at the same speed that the microcontroller plays the animation.
             int currentDuration = ((Frame)listView1.SelectedItems[0].Tag).durationMilliseconds;
 
             if(watch.ElapsedMilliseconds > elapsedMilliseconds + currentDuration)
@@ -345,10 +348,12 @@ namespace lightstudio
             else if (!serialManager.port.IsOpen)
                 isSerialEnabled=false;
 
+            //if buttonPlay was clicked, as opposed to buttonPlay_Click
+            //being called by another function (with both args equal to null)
             if(sender != null && e != null)
                 numFramesPlayed = 0;
 
-            byte[] clearCommand = { 186, 220, 254, 170 };
+            //clear saved frames
             if (isSerialEnabled)
                 serialManager.port.Write(clearCommand, 0, 4);
 
@@ -358,9 +363,9 @@ namespace lightstudio
                 byte[] frameBytes = GetBytesFromFrame(frm);
                 byte[] serialMsg = new byte[frameBytes.Length + 3];
 
-                serialMsg[0] = 171;
-                serialMsg[1] = 205;
-                serialMsg[2] = 239;
+                serialMsg[0] = startOfFrameHeader[0];
+                serialMsg[1] = startOfFrameHeader[1];
+                serialMsg[2] = startOfFrameHeader[2];
 
                 for (int i = 0; i < frameBytes.Length; i++)
                     serialMsg[i + 3] = frameBytes[i];
@@ -369,10 +374,7 @@ namespace lightstudio
                     serialManager.port.Write(serialMsg, 0, serialMsg.Length);
 
             }
-            //give the microcontroller a moment to receive and process the serial data
-            //System.Threading.Thread.Sleep(10);
             
-            byte[] playCommand = new byte[] { 186,220,254,187};
             if(isSerialEnabled)
                 serialManager.port.Write(playCommand, 0, 4);
 
@@ -392,7 +394,9 @@ namespace lightstudio
             int numSubframes = frame.Subframes.Count;
 
             //<1byte # of subframes><2byte duration><numsubframes*(3byte color + 16 byte pixelmap)>
-            int numBytes = 1 + 2 + numSubframes * (3 + 16);
+            
+            byte bytesPerSubframe = 3 + NUMPIXELMAPBYTES;
+            int numBytes = 1 + 2 + numSubframes * bytesPerSubframe;
             
             byte[] byteArray = new byte[numBytes];
             byteArray[0] = (byte) numSubframes;
@@ -402,12 +406,12 @@ namespace lightstudio
 
             for (int i=0; i<numSubframes; i++)
             {
-                byteArray[i * 19 + 3] = frame.Subframes[i].color.R;
-                byteArray[i * 19 + 4] = frame.Subframes[i].color.G;
-                byteArray[i * 19 + 5] = frame.Subframes[i].color.B;
+                byteArray[i * bytesPerSubframe + 3] = frame.Subframes[i].color.R;
+                byteArray[i * bytesPerSubframe + 4] = frame.Subframes[i].color.G;
+                byteArray[i * bytesPerSubframe + 5] = frame.Subframes[i].color.B;
 
-                for (int j = 0; j < 16; j++)
-                    byteArray[i * 19 + 6 + j] = frame.Subframes[i].subframeBitmap.byteArray[j];
+                for (int j = 0; j < NUMPIXELMAPBYTES; j++)
+                    byteArray[i * bytesPerSubframe + 6 + j] = frame.Subframes[i].subframeBitmap.byteArray[j];
             }
 
             return byteArray;
@@ -440,7 +444,7 @@ namespace lightstudio
             isAnimationPlaying = false;
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void buttonSaveFrameset_Click(object sender, EventArgs e)
         {
             saveFileDialog1.Filter = "LED File|*.led";
             DialogResult res = saveFileDialog1.ShowDialog();
@@ -448,7 +452,6 @@ namespace lightstudio
             {
                 string filename = saveFileDialog1.FileName;
                 WriteFramesToFile(filename);
-
             }
         }
 
@@ -466,7 +469,7 @@ namespace lightstudio
                 {
                     //file.Write("<");
                     file.Write(frame.Subframes[i].color.R + "," + frame.Subframes[i].color.G + "," + frame.Subframes[i].color.B);
-                    for (int j = 0; j < 16; j++)
+                    for (int j = 0; j < NUMPIXELMAPBYTES; j++)
                     {
                         file.Write(",");
                         file.Write(frame.Subframes[i].subframeBitmap.byteArray[j]);
@@ -503,7 +506,7 @@ namespace lightstudio
 
                         pixelBitmap bmap = new pixelBitmap();
 
-                        for (int j = 0; j < 16; j++)
+                        for (int j = 0; j < NUMPIXELMAPBYTES; j++)
                             bmap.byteArray[j] = Convert.ToByte(lineParts[3 + j]);
 
                         SubFrame sFrame = new SubFrame(clr, bmap);
@@ -531,7 +534,7 @@ namespace lightstudio
             {
                 Color clr = sFrame.color;
 
-                for(int i=0; i<16; i++)
+                for(int i=0; i< NUMPIXELMAPBYTES; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
@@ -554,7 +557,7 @@ namespace lightstudio
 
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void buttonLoadFrameset_Click(object sender, EventArgs e)
         {
             openFileDialog1.Filter = "LED File|*.led";
             DialogResult res = openFileDialog1.ShowDialog();
