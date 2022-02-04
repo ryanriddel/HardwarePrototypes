@@ -59,10 +59,13 @@ long timeOfLastSerialRead;
 long bytesProcessed=0;
 long bytesWritten=0;
 
+bool isClearPending = false;
 bool isAnimationPending = false;
 bool isAnimationPlaying = false;
 int currentAnimationFrame = 0;
 long frameTimes[256] = {0};
+
+bool isAnimationRunningLoop = false;
 
 PixelColor pixelColors[NUMPIXELS];
 
@@ -90,7 +93,6 @@ void loop() {
     //arbitrary wait for all serial data to come in
       if(millis() - timeOfLastSerialRead > 2)
       {
-        
         if(serialInputBuffer[serialInputBufferReadIndex] == 0xAB && serialInputBuffer[(serialInputBufferReadIndex+1) % SERIALINPUTBUFFERSIZE] == 0xCD && serialInputBuffer[(serialInputBufferReadIndex+2) % SERIALINPUTBUFFERSIZE] == 0xEF)
         {
           //this is a frame
@@ -98,7 +100,7 @@ void loop() {
           frameCount++;
           serialInputBufferReadIndex = (serialInputBufferReadIndex + 3 + bytesRead) % SERIALINPUTBUFFERSIZE;
 
-          bytesProcessed+=3+bytesRead;
+          bytesProcessed += 3 + bytesRead;
         }
         else if(serialInputBuffer[serialInputBufferReadIndex] == 0xBA && serialInputBuffer[(serialInputBufferReadIndex+1) % SERIALINPUTBUFFERSIZE] == 0xDC && serialInputBuffer[(serialInputBufferReadIndex+2) % SERIALINPUTBUFFERSIZE] == 0xFE)
         {
@@ -113,6 +115,20 @@ void loop() {
           {
             //play animation
             isAnimationPending = true;
+            isAnimationRunningLoop = false;
+          }
+          else if(serialInputBuffer[(serialInputBufferReadIndex+3) % SERIALINPUTBUFFERSIZE] == 0xCC)
+          {
+            //cancel currently playing animation
+            isAnimationPlaying = false;
+            isAnimationRunningLoop = false;
+            isClearPending = true;
+          }
+          else if(serialInputBuffer[(serialInputBufferReadIndex+3) % SERIALINPUTBUFFERSIZE] == 0xEE)
+          {
+            //play animation on loop
+            isAnimationPending = true;
+            isAnimationRunningLoop = true;
           }
           else
           {
@@ -144,6 +160,12 @@ void loop() {
       }
   }
 
+  if(isClearPending)
+  {
+    isClearPending = false;
+    clearPixels();
+  }
+  
   if(isAnimationPending)
   {
     isAnimationPending = false;
@@ -162,12 +184,20 @@ void loop() {
   {
     if(millis() > frameTimes[currentAnimationFrame] + frames[currentAnimationFrame].frameDuration)
     {
-      if(currentAnimationFrame == frameCount)
+      if(currentAnimationFrame >= frameCount)
       {
-        //end animation
-        isAnimationPlaying = false;
-        frameCount = 0;
-        clearPixels();
+        if(isAnimationRunningLoop)
+        {
+          isAnimationPending = true;
+          isAnimationPlaying = false;
+        }
+        else
+        {
+          //end animation
+          isAnimationPlaying = false;
+          frameCount = 0;
+          clearPixels();
+        }
       }
       else
       {

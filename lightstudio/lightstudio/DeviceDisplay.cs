@@ -19,13 +19,9 @@ namespace lightstudio
         public DeviceDisplay()
         {
             InitializeComponent();
-            //resources = new System.ComponentModel.ComponentResourceManager(typeof(DeviceDisplay));
-            Color top = Color.FromArgb(128, Color.Red);
-            Color bottom = Color.FromArgb(128, Color.Blue);
 
             highlightedBoxes = new List<ledbox>();
 
-            //pictureBox1.BackColor = Color.Red;
             DeviceType dType = DeviceType.Display49Inch;
             int numLEDS = 38;
             PopulateLEDBoxes(dType, numLEDS);
@@ -189,7 +185,6 @@ namespace lightstudio
                 else
                 {
 
-                    System.Diagnostics.Debug.WriteLine("UNHIGHLIGHT");
                     UnHighlightBoxes();
                 }
             }
@@ -264,8 +259,6 @@ namespace lightstudio
         
         private void DeviceDisplay_MouseMove(object sender, MouseEventArgs e)
         {
-            //System.Diagnostics.Debug.WriteLine(e.Location.X + "," + e.Location.Y);
-            
             if (e.Button != MouseButtons.Left)
                 return;
             Point tempEndPoint = e.Location;
