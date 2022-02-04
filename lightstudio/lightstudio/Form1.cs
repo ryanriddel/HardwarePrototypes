@@ -136,7 +136,7 @@ namespace lightstudio
             int numBytes = 3 + 1 + 2 + numSubframes * bytesPerSubframe;
             byte[] serialWriteOut = new byte[numBytes];
 
-            //start of frame header
+            
             serialWriteOut[0] = startOfFrameHeader[0]; //0xAB
             serialWriteOut[1] = startOfFrameHeader[1]; //0xCD
             serialWriteOut[2] = startOfFrameHeader[2]; //0xEF
@@ -310,6 +310,8 @@ namespace lightstudio
         {
             //this timer is used when playing animations to move through the listview 
             //at the same speed that the microcontroller plays the animation.
+            //having said that, as the frame durations approach <5-10ms, the animation 
+            //shown here will lag behind what the microcontroller is doing
             int currentDuration = ((Frame)listView1.SelectedItems[0].Tag).durationMilliseconds;
 
             if(watch.ElapsedMilliseconds > elapsedMilliseconds + currentDuration)
@@ -384,7 +386,7 @@ namespace lightstudio
             elapsedMilliseconds = 0;
             currentSelectedIndex = 0;
             watch.Start();
-            timer1.Interval = 5;
+            timer1.Interval = 2;
             timer1.Start();
         }
 

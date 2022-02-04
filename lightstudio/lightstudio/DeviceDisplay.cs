@@ -188,6 +188,8 @@ namespace lightstudio
                 }
                 else
                 {
+
+                    System.Diagnostics.Debug.WriteLine("UNHIGHLIGHT");
                     UnHighlightBoxes();
                 }
             }
@@ -250,10 +252,14 @@ namespace lightstudio
 
         private void UnHighlightBoxes()
         {
-            foreach(ledbox box in ledboxList)
-            {
-                box.HighlightCell(false);
-            }
+            //why do i unhighlight all ledboxes twice like this, you might wonder?
+            //i dont know.  this fixes a very irritating bug where sometimes pixels wouldnt unhighlight.
+            
+            for (int i = 0; i < ledboxList.Count; i++)
+                ledboxList[i].HighlightCell(false);
+            for (int i = 0; i < ledboxList.Count; i++)
+                ledboxList[i].HighlightCell(false);
+            
         }
         
         private void DeviceDisplay_MouseMove(object sender, MouseEventArgs e)
