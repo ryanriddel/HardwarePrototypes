@@ -158,6 +158,15 @@
             "rid": "win"
           }
         }
+      },
+      "ledcontroller/1.0.0": {
+        "type": "project",
+        "compile": {
+          "bin/placeholder/ledcontroller.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ledcontroller.dll": {}
+        }
       }
     }
   },
@@ -476,11 +485,17 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "ledcontroller/1.0.0": {
+      "type": "project",
+      "path": "../ledcontrollerlib/ledcontroller.csproj",
+      "msbuildProject": "../ledcontrollerlib/ledcontroller.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net5.0-windows7.0": [
-      "System.IO.Ports >= 6.0.0"
+      "System.IO.Ports >= 6.0.0",
+      "ledcontroller >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -514,7 +529,11 @@
       "frameworks": {
         "net5.0-windows7.0": {
           "targetAlias": "net5.0-windows",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\rriddel\\Desktop\\HardwarePrototypes\\lightstudio\\ledcontrollerlib\\ledcontroller.csproj": {
+              "projectPath": "C:\\Users\\rriddel\\Desktop\\HardwarePrototypes\\lightstudio\\ledcontrollerlib\\ledcontroller.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -550,7 +569,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.404\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.405\\RuntimeIdentifierGraph.json"
       }
     }
   }

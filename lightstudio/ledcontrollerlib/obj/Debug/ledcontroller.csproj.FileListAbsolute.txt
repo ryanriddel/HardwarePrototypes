@@ -1,0 +1,6 @@
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\ledcontrollerlib\bin\Debug\ledcontroller.dll
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\ledcontrollerlib\bin\Debug\ledcontroller.pdb
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\ledcontrollerlib\obj\Debug\ledcontroller.csproj.AssemblyReference.cache
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\ledcontrollerlib\obj\Debug\ledcontroller.csproj.CoreCompileInputs.cache
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\ledcontrollerlib\obj\Debug\ledcontroller.dll
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\ledcontrollerlib\obj\Debug\ledcontroller.pdb

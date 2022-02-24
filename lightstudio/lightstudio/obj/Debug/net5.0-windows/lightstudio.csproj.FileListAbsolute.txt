@@ -114,3 +114,5 @@ C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\ne
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\ref\lightstudio.dll
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.pdb
 C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\obj\Debug\net5.0-windows\lightstudio.genruntimeconfig.cache
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\bin\Debug\net5.0-windows\ledcontrollerlib.dll
+C:\Users\rriddel\Desktop\HardwarePrototypes\lightstudio\lightstudio\bin\Debug\net5.0-windows\ledcontrollerlib.pdb

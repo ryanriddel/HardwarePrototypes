@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ledcontrollerlib;
 
 namespace lightstudio
 {
@@ -19,7 +20,8 @@ namespace lightstudio
         byte[] playCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xBB };
         byte[] clearCommand = new byte[]{ 0xBA, 0xDC, 0xFE, 0xAA };
         byte[] startOfFrameHeader = new byte[] { 0xAB, 0xCD, 0xEF };
-        
+
+        LEDController ledcontroller;
 
         public Form1()
         {
@@ -359,6 +361,9 @@ namespace lightstudio
             if (isSerialEnabled)
                 serialManager.port.Write(clearCommand, 0, 4);
 
+            
+            List<byte> byteList = new List<byte>();
+            
             foreach (ListViewItem lvitem in listView1.Items)
             {
                 Frame frm = (Frame) lvitem.Tag;
@@ -372,12 +377,22 @@ namespace lightstudio
                 for (int i = 0; i < frameBytes.Length; i++)
                     serialMsg[i + 3] = frameBytes[i];
 
-                if(isSerialEnabled)
-                    serialManager.port.Write(serialMsg, 0, serialMsg.Length);
+                for (int i = 0; i < 3; i++)
+                    byteList.Add(startOfFrameHeader[i]);
+                for (int i = 0; i < frameBytes.Length; i++)
+                    byteList.Add(frameBytes[i]);
+
+                //if(isSerialEnabled)
+                //  serialManager.port.Write(serialMsg, 0, serialMsg.Length);
 
             }
-            
-            if(isSerialEnabled)
+
+            byte[] masterArray = byteList.ToArray<byte>();
+
+            if (isSerialEnabled)
+                serialManager.port.Write(masterArray, 0, masterArray.Length);
+
+            if (isSerialEnabled)
                 serialManager.port.Write(playCommand, 0, 4);
 
             listView1.Items[0].Selected = true;
