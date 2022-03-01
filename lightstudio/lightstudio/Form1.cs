@@ -93,21 +93,11 @@ namespace lightstudio
 
         private void toolStripLabel1_Click(object sender, EventArgs e)
         {
-            //There must be a better way to do this.  Is it right to give ledcontroller a SerialPort member?
-            
             serialManager.ShowDialog();
             
             if (serialManager.port != null )
-                if(serialManager.port.IsOpen)
-                {
-                    string portName = serialManager.port.PortName;
-                    int baudRate = serialManager.port.BaudRate;
-                    serialManager.port.Close();
-                    serialManager.port.Dispose();
-                    ledcontroller.serialPort = new System.IO.Ports.SerialPort(portName, baudRate);
-                    ledcontroller.serialPort.Open();
+                ledcontroller.serialPort = serialManager.port;
                     
-                }
         }
 
 
