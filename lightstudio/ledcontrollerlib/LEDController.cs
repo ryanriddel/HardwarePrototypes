@@ -10,14 +10,14 @@ namespace ledcontrollerlib
 {
     public class LEDController
     {
-        public const byte NUMPIXELMAPBYTES = 6;
+        public byte NUMPIXELMAPBYTES = 6;
         byte[] playCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xBB };
         byte[] playLoopCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xEE };
         byte[] cancelAnimationCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xCC };
         byte[] clearFrameBufferCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xAA };
         byte[] startOfFrameHeader = new byte[] { 0xAB, 0xCD, 0xEF };
 
-        SerialPort serialPort;
+        public SerialPort serialPort;
         
         public class pixelBitmap
         {
@@ -54,7 +54,6 @@ namespace ledcontrollerlib
         {
             public List<SubFrame> Subframes;
             public int durationMilliseconds = 0;
-            //public Bitmap frameImage;
             public Guid FrameID;
 
             public Frame()
@@ -71,13 +70,55 @@ namespace ledcontrollerlib
             }
         }
 
+        public class Animation
+        {
+            public List<Frame> Frames;
+            public string Name;
+            public int Duration = 0; //milliseconds
+            public Animation()
+            {
+                Frames = new List<Frame>();
+                Name = Guid.NewGuid().ToString();
+            }
+
+            public Animation(List<Frame> frameList)
+            {
+                Frames = frameList;
+
+                foreach (Frame frm in frameList)
+                    Duration += frm.durationMilliseconds;
+            }
+        }
+
+        public LEDController()
+        {
+
+        
+        }
+
+        public bool ConnectSerialPort(string portName, int baudRate)
+        {
+            try
+            {
+                serialPort = new SerialPort(portName, baudRate);
+
+                if (IsSerialEnabled())
+                    return true;
+                else return false;
+            }
+            catch(Exception e)
+            {
+                return false;
+            }
+        }
+
         private bool IsSerialEnabled()
         {
-            bool isSerialEnabled = true;
+            bool isSerialEnabled = false;
             if (serialPort == null)
                 isSerialEnabled = false;
             else if (serialPort.IsOpen)
-                isSerialEnabled = false;
+                isSerialEnabled = true;
 
             return isSerialEnabled;
         }
@@ -107,7 +148,7 @@ namespace ledcontrollerlib
         }
 
 
-        private List<SubFrame> ConvertPixelListToSubframeList(List<Color> pixelColors)
+        public List<SubFrame> ConvertPixelListToSubframeList(List<Color> pixelColors)
         {
             Dictionary<Color, pixelBitmap> colorBitmap = ConvertPixelListToSubframeDictionary(pixelColors);
             List<SubFrame> subframeList = new List<SubFrame>();
@@ -121,7 +162,19 @@ namespace ledcontrollerlib
             return subframeList;
         }
 
-        private byte[] SerializeFrames(List<Frame> frameList)
+        public List<SubFrame> ConvertColorBitmapsToSubframeList(Dictionary<Color, pixelBitmap> colorBitmaps)
+        {
+            List<SubFrame> subframeList = new List<SubFrame>();
+
+            foreach (Color clr in colorBitmaps.Keys)
+            {
+                SubFrame newSubframe = new SubFrame(clr, colorBitmaps[clr]);
+                subframeList.Add(newSubframe);
+            }
+
+            return subframeList;
+        }
+        public byte[] SerializeFrames(List<Frame> frameList)
         {
             List<byte> byteList = new List<byte>();
 
@@ -142,7 +195,7 @@ namespace ledcontrollerlib
             return byteList.ToArray<byte>();
         }
 
-        private Frame ConvertSubframesToFrame(List<SubFrame> subframeList, int frameDuration)
+        public Frame ConvertSubframesToFrame(List<SubFrame> subframeList, int frameDuration)
         {
             Frame returnFrame = new Frame(frameDuration);
             returnFrame.Subframes = subframeList;
@@ -151,14 +204,14 @@ namespace ledcontrollerlib
             return returnFrame;
         }
 
-        private byte[] GetBytesFromFrame(Frame frame)
+        public byte[] GetBytesFromFrame(Frame frame)
         {
 
             int numSubframes = frame.Subframes.Count;
 
-            //<1byte # of subframes><2byte duration><numsubframes*(3byte color + 16 byte pixelmap)>
+            //<1byte # of subframes><2byte duration><numsubframes*(3byte color + N byte pixelmap)>
 
-            byte bytesPerSubframe = 3 + NUMPIXELMAPBYTES;
+            byte bytesPerSubframe = (byte)(3 + NUMPIXELMAPBYTES);
             int numBytes = 1 + 2 + numSubframes * bytesPerSubframe;
 
             byte[] byteArray = new byte[numBytes];
@@ -180,7 +233,7 @@ namespace ledcontrollerlib
             return byteArray;
         }
 
-        private void WriteFramesToFile(List<Frame> frameList, string filePath)
+        public void WriteFramesToFile(List<Frame> frameList, string filePath)
         {
             StreamWriter file = File.AppendText(filePath);
             int frameCounter = 0;

@@ -15,11 +15,14 @@ namespace lightstudio
     {
         public bool isConnected = false;
         public SerialPort port;
+        public string PortName;
+        public int BaudRate;
 
         public serialManagerForm()
         {
             InitializeComponent();
-            
+            PortName = "";
+            BaudRate = 0;
         }
 
         private void comboBox1_MouseClick(object sender, MouseEventArgs e)

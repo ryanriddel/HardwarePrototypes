@@ -113,7 +113,7 @@
       "System.Security.Principal.Windows/5.0.0": {},
       "ledcontroller/1.0.0": {
         "runtime": {
-          "ledcontrollerlib.dll": {}
+          "ledcontroller.dll": {}
         }
       }
     }

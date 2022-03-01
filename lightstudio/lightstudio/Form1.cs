@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ledcontrollerlib;
+using static ledcontrollerlib.LEDController;
 
 namespace lightstudio
 {
@@ -16,21 +17,19 @@ namespace lightstudio
     public partial class Form1 : Form
     {
         serialManagerForm serialManager = new serialManagerForm();
-        public const byte NUMPIXELMAPBYTES = 6;
-        byte[] playCommand = new byte[] { 0xBA, 0xDC, 0xFE, 0xBB };
-        byte[] clearCommand = new byte[]{ 0xBA, 0xDC, 0xFE, 0xAA };
-        byte[] startOfFrameHeader = new byte[] { 0xAB, 0xCD, 0xEF };
 
         LEDController ledcontroller;
+
+        Dictionary<Guid, Bitmap> frameToBitmapDict = new Dictionary<Guid, Bitmap>();
 
         public Form1()
         {
             InitializeComponent();
+            ledcontroller = new LEDController();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
         }
 
         private void colorPickerPictureBox_Click(object sender, EventArgs e)
@@ -94,7 +93,21 @@ namespace lightstudio
 
         private void toolStripLabel1_Click(object sender, EventArgs e)
         {
+            //There must be a better way to do this.  Is it right to give ledcontroller a SerialPort member?
+            
             serialManager.ShowDialog();
+            
+            if (serialManager.port != null )
+                if(serialManager.port.IsOpen)
+                {
+                    string portName = serialManager.port.PortName;
+                    int baudRate = serialManager.port.BaudRate;
+                    serialManager.port.Close();
+                    serialManager.port.Dispose();
+                    ledcontroller.serialPort = new System.IO.Ports.SerialPort(portName, baudRate);
+                    ledcontroller.serialPort.Open();
+                    
+                }
         }
 
 
@@ -121,98 +134,26 @@ namespace lightstudio
         }
         private void buttonPeekFrame_Click(object sender, EventArgs e)
         {
-            bool isSerialEnabled = true;
-            if (serialManager.port == null)
-                isSerialEnabled = false;
-            else if (!serialManager.port.IsOpen)
-                isSerialEnabled = false;
-
-
-            Dictionary<Color, pixelBitmap> colorBitmap=GetDisplayPanelColorBitmap();
-
-
-            byte numSubframes = (byte)colorBitmap.Keys.Count;
-            byte bytesPerSubframe = 3 + NUMPIXELMAPBYTES;
-
-            //3 byte header + 1 byte subframe count + 2 byte duration
-            int numBytes = 3 + 1 + 2 + numSubframes * bytesPerSubframe;
-            byte[] serialWriteOut = new byte[numBytes];
-
             
-            serialWriteOut[0] = startOfFrameHeader[0]; //0xAB
-            serialWriteOut[1] = startOfFrameHeader[1]; //0xCD
-            serialWriteOut[2] = startOfFrameHeader[2]; //0xEF
+            Dictionary<Color, LEDController.pixelBitmap> colorBitmap=GetDisplayPanelColorBitmap();
+            List<SubFrame> sframeList = ledcontroller.ConvertColorBitmapsToSubframeList(colorBitmap);
+            Frame frame = ledcontroller.ConvertSubframesToFrame(sframeList, Convert.ToInt16(numericUpDown1.Value));
+            List<Frame> frameList = new List<Frame>();
+            frameList.Add(frame);
+            ledcontroller.PlayAnimationOnce(frameList);
             
-            
-            serialWriteOut[3] = numSubframes;
-
-
-            Int16 subframeDuration = Convert.ToInt16(numericUpDown1.Value);
-            serialWriteOut[4] = (byte)(subframeDuration & 255);
-            serialWriteOut[5] = (byte)(subframeDuration >> 8);
-            
-            for(int i=0; i<colorBitmap.Keys.Count; i++)
-            {
-                Color clr = colorBitmap.Keys.ElementAt<Color>(i);
-                serialWriteOut[6 + i * bytesPerSubframe] = clr.R;
-                serialWriteOut[7 + i * bytesPerSubframe] = clr.G;
-                serialWriteOut[8 + i * bytesPerSubframe] = clr.B;
-
-                
-                byte[] colorByteBuffer = { clr.R, clr.G, clr.B };
-                
-                System.Diagnostics.Debug.WriteLine("Color: " + clr.R.ToString() + "  " + clr.G.ToString() + "  " + clr.B.ToString());
-
-                byte[] pixelBitmapByteBuffer = new byte[NUMPIXELMAPBYTES];
-
-                for (int j = 0; j < NUMPIXELMAPBYTES; j++)
-                {
-                    
-                    System.Diagnostics.Debug.Write(Convert.ToString(colorBitmap[clr].byteArray[j], 10));
-                    System.Diagnostics.Debug.Write("  ");
-                    serialWriteOut[9 + j + i * bytesPerSubframe] = colorBitmap[clr].byteArray[j];
-                }
-                System.Diagnostics.Debug.WriteLine("");
-
-            }
-            System.Diagnostics.Debug.WriteLine("NumBytes: " + numBytes);
-            
-            if(isSerialEnabled)
-                serialManager.port.Write(serialWriteOut, 0, numBytes);
-
-
-            //send play command
-            if(isSerialEnabled)
-                serialManager.port.Write(playCommand, 0, 4);
-
         }
 
         private void buttonAddFrame_Click(object sender, EventArgs e)
         {
             Dictionary < Color, pixelBitmap > colorBitmap = GetDisplayPanelColorBitmap();
-
-
-            Frame newFrame = new Frame();
-
-            for (int i = 0; i < colorBitmap.Keys.Count; i++)
-            {
-
-                Color clr = colorBitmap.Keys.ElementAt<Color>(i);
-                pixelBitmap pBmp = new pixelBitmap();
-                colorBitmap[clr].byteArray.CopyTo(pBmp.byteArray, 0);
-
-                SubFrame sFrame = new SubFrame(clr, pBmp);
-                newFrame.Subframes.Add(sFrame);
-            }
-            newFrame.durationMilliseconds = Convert.ToInt16(numericUpDown1.Value);
-
-            //deselect all cells
-            //foreach (ledbox box in this.deviceDisplay2.ledboxList)
-              //  box.HighlightCell(false);
+            List<SubFrame> subframeList = ledcontroller.ConvertColorBitmapsToSubframeList(colorBitmap);
+            
+            Frame newFrame = ledcontroller.ConvertSubframesToFrame(subframeList, Convert.ToInt16(numericUpDown1.Value));
 
             Bitmap b = new Bitmap(deviceDisplay2.Width, deviceDisplay2.Height);
             deviceDisplay2.DrawToBitmap(b, new Rectangle(0, 0, b.Width, b.Height));
-            newFrame.frameImage = b;
+            frameToBitmapDict[newFrame.FrameID] = b;
 
             ListViewItem newItem = new ListViewItem(new[] { newFrame.FrameID.ToString(), newFrame.Subframes.Count.ToString(), newFrame.durationMilliseconds.ToString() });
             newItem.Tag = newFrame;
@@ -236,7 +177,7 @@ namespace lightstudio
             {
                 ListViewItem selectedItem = listView1.SelectedItems[0];
                 Frame frame = (Frame)selectedItem.Tag;
-                pictureBox7.BackgroundImage = frame.frameImage;
+                pictureBox7.BackgroundImage = frameToBitmapDict[frame.FrameID];
                 pictureBox7.BackgroundImageLayout = ImageLayout.Stretch;
             }
         }
@@ -289,7 +230,7 @@ namespace lightstudio
                     listView1.Items[newIndex].Selected = true;
 
                     Frame frame = (Frame)listView1.Items[0].Tag;
-                    pictureBox7.BackgroundImage = frame.frameImage;
+                    pictureBox7.BackgroundImage = frameToBitmapDict[frame.FrameID];
                     pictureBox7.BackgroundImageLayout = ImageLayout.Stretch;
                 }
                 else
@@ -303,6 +244,7 @@ namespace lightstudio
         {
 
         }
+
         int numFramesPlayed = 0;
         bool isAnimationPlaying = false;
         long elapsedMilliseconds = 0;
@@ -325,7 +267,6 @@ namespace lightstudio
                     if (currentSelectedIndex < listView1.Items.Count-1)
                     {
                         numFramesPlayed++;
-                        System.Diagnostics.Debug.WriteLine("#Frames: " + numFramesPlayed);
                         currentSelectedIndex++;
                         listView1.Items[currentSelectedIndex].Selected = true;
                         listView1.Items[currentSelectedIndex].EnsureVisible();
@@ -346,54 +287,34 @@ namespace lightstudio
         private void buttonPlay_Click(object sender, EventArgs e)
         {
             //first, send a clear command.  Then, serialize the frames and send over serial.  Finally, send a play command
-            bool isSerialEnabled = true;
-            if (serialManager.port == null)
-                isSerialEnabled=false;
-            else if (!serialManager.port.IsOpen)
-                isSerialEnabled=false;
+
 
             //if buttonPlay was clicked, as opposed to buttonPlay_Click
             //being called by another function (with both args equal to null)
-            if(sender != null && e != null)
+            if (sender != null && e != null)
+            {
                 numFramesPlayed = 0;
 
-            //clear saved frames
-            if (isSerialEnabled)
-                serialManager.port.Write(clearCommand, 0, 4);
+                List<Frame> frameList = new List<Frame>();
 
-            
-            List<byte> byteList = new List<byte>();
-            
-            foreach (ListViewItem lvitem in listView1.Items)
-            {
-                Frame frm = (Frame) lvitem.Tag;
-                byte[] frameBytes = GetBytesFromFrame(frm);
-                byte[] serialMsg = new byte[frameBytes.Length + 3];
+                foreach (ListViewItem lvitem in listView1.Items)
+                {
+                    Frame frm = (Frame)lvitem.Tag;
+                    frameList.Add(frm);
 
-                serialMsg[0] = startOfFrameHeader[0];
-                serialMsg[1] = startOfFrameHeader[1];
-                serialMsg[2] = startOfFrameHeader[2];
+                }
 
-                for (int i = 0; i < frameBytes.Length; i++)
-                    serialMsg[i + 3] = frameBytes[i];
-
-                for (int i = 0; i < 3; i++)
-                    byteList.Add(startOfFrameHeader[i]);
-                for (int i = 0; i < frameBytes.Length; i++)
-                    byteList.Add(frameBytes[i]);
-
-                //if(isSerialEnabled)
-                //  serialManager.port.Write(serialMsg, 0, serialMsg.Length);
+                if (loopCheckbox.Checked)
+                    ledcontroller.PlayAnimationLoop(frameList);
+                else
+                    ledcontroller.PlayAnimationOnce(frameList);
 
             }
+            else
+            {
+                
 
-            byte[] masterArray = byteList.ToArray<byte>();
-
-            if (isSerialEnabled)
-                serialManager.port.Write(masterArray, 0, masterArray.Length);
-
-            if (isSerialEnabled)
-                serialManager.port.Write(playCommand, 0, 4);
+            }
 
             listView1.Items[0].Selected = true;
             isAnimationPlaying = true;
@@ -405,34 +326,7 @@ namespace lightstudio
             timer1.Start();
         }
 
-        private byte[] GetBytesFromFrame(Frame frame)
-        {
-
-            int numSubframes = frame.Subframes.Count;
-
-            //<1byte # of subframes><2byte duration><numsubframes*(3byte color + 16 byte pixelmap)>
-            
-            byte bytesPerSubframe = 3 + NUMPIXELMAPBYTES;
-            int numBytes = 1 + 2 + numSubframes * bytesPerSubframe;
-            
-            byte[] byteArray = new byte[numBytes];
-            byteArray[0] = (byte) numSubframes;
-            
-            byteArray[1] = (byte)(frame.durationMilliseconds & 255);
-            byteArray[2] = (byte)(frame.durationMilliseconds >> 8);
-
-            for (int i=0; i<numSubframes; i++)
-            {
-                byteArray[i * bytesPerSubframe + 3] = frame.Subframes[i].color.R;
-                byteArray[i * bytesPerSubframe + 4] = frame.Subframes[i].color.G;
-                byteArray[i * bytesPerSubframe + 5] = frame.Subframes[i].color.B;
-
-                for (int j = 0; j < NUMPIXELMAPBYTES; j++)
-                    byteArray[i * bytesPerSubframe + 6 + j] = frame.Subframes[i].subframeBitmap.byteArray[j];
-            }
-
-            return byteArray;
-        }
+        
 
         private void listView1_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
@@ -440,7 +334,7 @@ namespace lightstudio
             {
                 ListViewItem selectedItem = listView1.SelectedItems[0];
                 Frame frame = (Frame)selectedItem.Tag;
-                pictureBox7.BackgroundImage = frame.frameImage;
+                pictureBox7.BackgroundImage = frameToBitmapDict[frame.FrameID];
                 pictureBox7.BackgroundImageLayout = ImageLayout.Stretch;
             }
         }
@@ -459,6 +353,8 @@ namespace lightstudio
         {
             timer1.Stop();
             isAnimationPlaying = false;
+
+            ledcontroller.CancelCurrentAnimation();
         }
 
         private void buttonSaveFrameset_Click(object sender, EventArgs e)
@@ -468,76 +364,18 @@ namespace lightstudio
             if(res == DialogResult.OK)
             {
                 string filename = saveFileDialog1.FileName;
-                WriteFramesToFile(filename);
-            }
-        }
 
-        private void WriteFramesToFile(string filePath)
-        {
-            StreamWriter file = File.AppendText(filePath);
-            int frameCounter = 0;
-            foreach (ListViewItem item in listView1.Items)
-            {
-                Frame frame = (Frame)item.Tag;
-                
-                file.WriteLine("Frame#" + frameCounter + " " + frame.durationMilliseconds + " " + frame.Subframes.Count);
+                List<Frame> frameList = new List<Frame>();
 
-                for (int i = 0; i < frame.Subframes.Count; i++)
+                foreach(ListViewItem item in listView1.Items)
                 {
-                    //file.Write("<");
-                    file.Write(frame.Subframes[i].color.R + "," + frame.Subframes[i].color.G + "," + frame.Subframes[i].color.B);
-                    for (int j = 0; j < NUMPIXELMAPBYTES; j++)
-                    {
-                        file.Write(",");
-                        file.Write(frame.Subframes[i].subframeBitmap.byteArray[j]);
-                    }
-                    file.WriteLine("");
+                    frameList.Add((Frame)item.Tag);
                 }
-                frameCounter++;
+                ledcontroller.WriteFramesToFile(frameList, filename);
             }
-            file.Flush();
-            file.Close();
         }
 
-        private List<Frame> LoadFramesFromFile(string filePath)
-        {
-            string[] allLines = System.IO.File.ReadAllLines(filePath);
-            int currentLine = 0;
-            List<Frame> frameList = new List<Frame>();
-
-            while(currentLine < allLines.Length)
-            {
-                string[] lineParts = allLines[currentLine].Split(" ");
-                
-                if(lineParts[0].StartsWith("Frame"))
-                {
-                    Frame newFrame = new Frame(Convert.ToInt16(lineParts[1]));
-                    byte numSubframes = Convert.ToByte(lineParts[2]);
-
-                    for(int i=0; i<numSubframes; i++)
-                    {
-                        currentLine++;
-
-                        lineParts = allLines[currentLine].Split(",");
-                        Color clr = Color.FromArgb(Convert.ToByte(lineParts[0]), Convert.ToByte(lineParts[1]), Convert.ToByte(lineParts[2]));
-
-                        pixelBitmap bmap = new pixelBitmap();
-
-                        for (int j = 0; j < NUMPIXELMAPBYTES; j++)
-                            bmap.byteArray[j] = Convert.ToByte(lineParts[3 + j]);
-
-                        SubFrame sFrame = new SubFrame(clr, bmap);
-
-                        newFrame.Subframes.Add(sFrame);
-                    }
-                    frameList.Add(newFrame);
-                    currentLine++;
-
-                }
-            }
-
-            return frameList;
-        }
+        
 
         void WriteFrameToDeviceDisplay(Frame frame)
         {
@@ -550,8 +388,8 @@ namespace lightstudio
             foreach(SubFrame sFrame in frame.Subframes)
             {
                 Color clr = sFrame.color;
-
-                for(int i=0; i< NUMPIXELMAPBYTES; i++)
+                
+                for(int i=0; i< ledcontroller.NUMPIXELMAPBYTES; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
@@ -570,7 +408,7 @@ namespace lightstudio
 
             Bitmap b = new Bitmap(deviceDisplay2.Width, deviceDisplay2.Height);
             deviceDisplay2.DrawToBitmap(b, new Rectangle(0, 0, b.Width, b.Height));
-            frame.frameImage = b;
+            frameToBitmapDict[frame.FrameID] = b;
 
         }
 
@@ -582,7 +420,7 @@ namespace lightstudio
             if(res == DialogResult.OK)
             {
                 string filename = openFileDialog1.FileName;
-                List<Frame> frames = LoadFramesFromFile(filename);
+                List<Frame> frames = ledcontroller.LoadFramesFromFile(filename);
 
                 if (frames.Count > 0)
                     listView1.Items.Clear();
