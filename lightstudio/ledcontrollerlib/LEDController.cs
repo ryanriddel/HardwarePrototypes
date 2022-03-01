@@ -18,6 +18,8 @@ namespace ledcontrollerlib
         byte[] startOfFrameHeader = new byte[] { 0xAB, 0xCD, 0xEF };
 
         public SerialPort serialPort;
+
+        
         
         public class pixelBitmap
         {
@@ -174,6 +176,17 @@ namespace ledcontrollerlib
 
             return subframeList;
         }
+
+        public Frame ConvertColorBitmapsToFrame(Dictionary<Color, pixelBitmap> colorBitmaps, int duration)
+        {
+            return ConvertSubframesToFrame(ConvertColorBitmapsToSubframeList(colorBitmaps), duration);
+        }
+
+        public Frame ConvertPixelListToFrame(List<Color> pixelList, int duration)
+        {
+            return ConvertSubframesToFrame(ConvertPixelListToSubframeList(pixelList), duration);
+        }
+
         public byte[] SerializeFrames(List<Frame> frameList)
         {
             List<byte> byteList = new List<byte>();
