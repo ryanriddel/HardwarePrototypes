@@ -57,6 +57,7 @@ namespace ledcontrollerlib
             public List<SubFrame> Subframes;
             public int durationMilliseconds = 0;
             public Guid FrameID;
+            public byte StripID;
 
             public Frame()
             {
@@ -187,7 +188,7 @@ namespace ledcontrollerlib
             return ConvertSubframesToFrame(ConvertPixelListToSubframeList(pixelList), duration);
         }
 
-        public byte[] SerializeFrames(List<Frame> frameList)
+        public byte[] SerializeFrames(List<Frame> frameList, byte stripNum)
         {
             List<byte> byteList = new List<byte>();
 
@@ -195,10 +196,12 @@ namespace ledcontrollerlib
             {
 
                 byte[] frameBytes = GetBytesFromFrame(frm);
-                byte[] serialMsg = new byte[frameBytes.Length + 3];
+                byte[] serialMsg = new byte[frameBytes.Length + startOfFrameHeader.Length + 1];
                 
                 for (int i = 0; i < 3; i++)
                     byteList.Add(startOfFrameHeader[i]);
+
+                byteList.Add(stripNum);
                 
                 for (int i = 0; i < frameBytes.Length; i++)
                     byteList.Add(frameBytes[i]);
@@ -221,8 +224,6 @@ namespace ledcontrollerlib
         {
 
             int numSubframes = frame.Subframes.Count;
-
-            //<1byte # of subframes><2byte duration><numsubframes*(3byte color + N byte pixelmap)>
 
             byte bytesPerSubframe = (byte)(3 + NUMPIXELMAPBYTES);
             int numBytes = 1 + 2 + numSubframes * bytesPerSubframe;
@@ -313,7 +314,7 @@ namespace ledcontrollerlib
 
         public void PlayAnimationOnce(List<Frame> frameList)
         {
-            byte[] serialOut = SerializeFrames(frameList);
+            byte[] serialOut = SerializeFrames(frameList, 0);
 
             if(IsSerialEnabled())
             {
@@ -325,7 +326,7 @@ namespace ledcontrollerlib
 
         public void PlayAnimationLoop(List<Frame> frameList)
         {
-            byte[] serialOut = SerializeFrames(frameList);
+            byte[] serialOut = SerializeFrames(frameList, 0);
 
             if (IsSerialEnabled())
             {

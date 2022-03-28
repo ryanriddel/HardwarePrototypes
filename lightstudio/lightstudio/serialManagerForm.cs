@@ -82,6 +82,7 @@ namespace lightstudio
             string readResult = port.ReadExisting();
             
                 errorCount++;
+            System.Diagnostics.Debug.WriteLine(readResult);
                 System.Diagnostics.Debug.WriteLine("ERRORS: " + errorCount);
         }
 
